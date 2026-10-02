@@ -1,0 +1,212 @@
+/* =========================================================
+   曦曦的空间 · 游戏屋专属样式
+   ========================================================= */
+
+/* ================= 游戏 Hero ================= */
+.ghero{
+  position:relative;overflow:hidden;
+  min-height:78svh;display:flex;align-items:center;
+  padding:150px 0 90px;
+  background:
+    radial-gradient(90% 70% at 12% 8%, rgba(255,184,207,.30) 0%, transparent 55%),
+    radial-gradient(85% 70% at 88% 12%, rgba(126,214,168,.30) 0%, transparent 55%),
+    radial-gradient(80% 70% at 50% 100%, rgba(255,217,122,.24) 0%, transparent 60%),
+    linear-gradient(180deg,#fbfef8 0%,#f1faf1 100%);
+}
+.ghero__blob{
+  position:absolute;border-radius:50%;filter:blur(4px);opacity:.5;
+  animation:floaty 8s ease-in-out infinite;pointer-events:none;
+}
+.ghero__blob--1{width:210px;height:210px;left:6%;top:16%;
+  background:radial-gradient(circle at 32% 30%,#ffe3ed,#ffd0e0);}
+.ghero__blob--2{width:160px;height:160px;right:8%;bottom:12%;
+  background:radial-gradient(circle at 32% 30%,#e6f7ec,#c9efdc);
+  animation-delay:-3.4s;}
+.ghero__content{
+  position:relative;z-index:2;text-align:center;
+  width:min(100% - 40px, 720px);margin-inline:auto;
+}
+.ghero__badge{
+  display:inline-block;background:rgba(255,255,255,.9);
+  border:1px solid var(--mint-soft);color:var(--leaf-deep);
+  font-weight:700;font-size:14px;padding:7px 18px;border-radius:999px;
+  box-shadow:var(--sh-sm);
+}
+.ghero__title{
+  font-size:clamp(40px,7.6vw,72px);color:var(--leaf-deep);
+  margin:20px 0 16px;line-height:1.08;
+}
+.ghero__title-accent{
+  background:linear-gradient(100deg,#5cc38f,#ffb8cf 60%,#ffd97a);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+.ghero__sub{color:var(--ink-2);font-size:clamp(15px,2vw,18px);max-width:46ch;margin-inline:auto;}
+.ghero__nav{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:30px;}
+.ghero__more{margin-top:26px;font-size:13.5px;color:var(--ink-3);font-weight:600;}
+
+/* ================= 游戏卡片 ================= */
+.game-card{
+  max-width:640px;margin:0 auto;
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:var(--sh-md);
+  padding:clamp(22px,4.5vw,38px);
+}
+
+/* ================= 舒尔特方格 ================= */
+.sg-controls{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:14px 18px;margin-bottom:24px;
+}
+.sg-sizes{display:flex;gap:8px;}
+.sg-size{
+  font-family:inherit;cursor:pointer;
+  background:#f8fdf9;border:1.5px solid var(--line);border-radius:var(--r-sm);
+  padding:9px 14px 7px;font-size:15px;font-weight:800;color:var(--ink-2);
+  line-height:1.35;text-align:center;
+  transition:.28s var(--ease);
+}
+.sg-size small{display:block;font-size:11.5px;font-weight:700;color:var(--ink-3);}
+.sg-size:hover{transform:translateY(-2px);border-color:var(--mint);}
+.sg-size.is-on{
+  background:linear-gradient(135deg,#5cc38f,#7ed6a8);color:#fff;
+  border-color:transparent;box-shadow:0 8px 20px rgba(74,168,119,.32);
+}
+.sg-size.is-on small{color:rgba(255,255,255,.85);}
+
+.sg-stats{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;flex:1 1 100%;
+}
+.sg-stat{
+  background:#f8fdf9;border:1px solid var(--line);border-radius:999px;
+  font-size:13px;font-weight:700;color:var(--ink-2);padding:6px 14px;
+}
+.sg-stat b{color:var(--leaf-deep);font-size:14px;margin-left:2px;}
+
+.sg-gen{flex:none;}
+
+.sg-board{
+  display:grid;gap:10px;margin:0 auto;
+  width:min(92vw,var(--bw,300px));
+}
+.sg-placeholder{
+  grid-column:1/-1;text-align:center;color:var(--ink-3);
+  font-size:15px;font-weight:600;padding:46px 10px;
+  background:repeating-linear-gradient(45deg,#f4fcf6,#f4fcf6 12px,#eefaf2 12px,#eefaf2 24px);
+  border:2px dashed var(--mint);border-radius:var(--r-md);
+}
+.sg-cell{
+  aspect-ratio:1;display:grid;place-items:center;
+  border:1.5px solid var(--line);border-radius:16px;
+  background:#fff;box-shadow:var(--sh-sm);
+  font-family:inherit;font-size:clamp(17px,5.4vw,28px);font-weight:800;
+  color:var(--leaf-deep);cursor:pointer;padding:0;
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),
+             background .3s var(--ease),color .3s var(--ease),opacity .3s;
+}
+.sg-cell:hover:not(.is-found){transform:translateY(-3px);box-shadow:var(--sh-md);border-color:var(--mint);}
+.sg-cell:active:not(.is-found){transform:scale(.94);}
+.sg-cell.is-found{
+  background:linear-gradient(135deg,var(--mint),var(--mint-soft));
+  color:#fff;border-color:transparent;cursor:default;opacity:.85;
+  animation:cellPop .35s var(--ease);
+}
+@keyframes cellPop{0%{transform:scale(1);}45%{transform:scale(1.12);}100%{transform:scale(1);}}
+.sg-cell.is-wrong{
+  background:var(--pink-soft);border-color:var(--pink);color:#c76287;
+  animation:cellShake .4s var(--ease);
+}
+@keyframes cellShake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-3px);}
+}
+.sg-board.is-done .sg-cell{cursor:default;}
+
+.sg-result{
+  text-align:center;margin:22px 0 0;min-height:26px;
+  font-size:16px;font-weight:800;color:var(--leaf-deep);
+}
+.sg-result.is-show{animation:pop .5s var(--ease);}
+
+/* ================= 剪子包袱锤 ================= */
+.rps-arena{
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(16px,6vw,56px);margin-bottom:6px;
+}
+.rps-side{text-align:center;}
+.rps-side__label{font-size:13px;font-weight:800;color:var(--ink-3);margin-bottom:10px;}
+.rps-hand{
+  width:clamp(72px,20vw,92px);height:clamp(72px,20vw,92px);
+  border-radius:26px;display:grid;place-items:center;
+  font-size:clamp(36px,10vw,48px);
+  background:#fff;border:2px dashed var(--mint);
+  box-shadow:var(--sh-sm);
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease),border-color .35s;
+}
+.rps-hand.is-set{border-style:solid;}
+.rps-hand.is-reveal{animation:handPop .55s var(--ease);}
+@keyframes handPop{
+  0%{transform:scale(.4) rotate(-18deg);opacity:0;}
+  60%{transform:scale(1.18) rotate(6deg);opacity:1;}
+  100%{transform:scale(1) rotate(0);}
+}
+.rps-vs{
+  font-size:clamp(20px,5vw,30px);font-weight:900;font-style:italic;
+  color:var(--pink);letter-spacing:.04em;
+  text-shadow:0 2px 0 #fff;
+}
+
+.rps-verdict{
+  text-align:center;min-height:32px;margin:8px 0 4px;
+  font-size:clamp(17px,3.4vw,21px);font-weight:800;color:var(--ink-2);
+}
+.rps-verdict.win{color:var(--leaf-deep);}
+.rps-verdict.lose{color:#d46a90;}
+.rps-verdict.draw{color:#c99a2e;}
+.rps-verdict.is-show{animation:pop .5s var(--ease);}
+
+.rps-picks{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:6px 0 18px;}
+.rps-pick{
+  font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  min-width:92px;padding:14px 18px 11px;
+  background:#f8fdf9;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:14.5px;font-weight:800;color:var(--ink-2);
+  transition:.28s var(--ease);
+}
+.rps-pick span{font-size:30px;line-height:1.15;transition:transform .3s var(--ease);}
+.rps-pick:hover{transform:translateY(-4px);border-color:var(--mint);box-shadow:var(--sh-md);background:#fff;}
+.rps-pick:hover span{transform:scale(1.15) rotate(-8deg);}
+.rps-pick.is-on{
+  background:linear-gradient(140deg,var(--pink-soft),#fff6fa);
+  border-color:var(--pink);color:#c76287;
+  box-shadow:0 10px 24px rgba(255,148,187,.30);
+}
+.rps-pick.is-dim{opacity:.42;pointer-events:none;}
+.rps-picks.is-locked .rps-pick{pointer-events:none;}
+
+.rps-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
+.rps-actions .btn[hidden]{display:none;}
+
+.rps-score{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+  margin-top:22px;padding-top:20px;border-top:1.5px dashed var(--line);
+}
+.rps-chip{
+  background:#f8fdf9;border:1px solid var(--line);border-radius:999px;
+  font-size:13px;font-weight:700;color:var(--ink-2);padding:6px 14px;
+}
+.rps-chip b{color:var(--leaf-deep);font-size:14.5px;}
+.rps-chip--you{background:var(--mint-soft);border-color:transparent;color:var(--leaf-deep);}
+.rps-chip--you b{color:var(--leaf-deep);}
+.rps-chip--cpu{background:var(--pink-soft);border-color:transparent;color:#c76287;}
+.rps-chip--cpu b{color:#c76287;}
+.rps-chip--streak{background:var(--honey);border-color:transparent;color:#8a6a12;}
+.rps-chip--streak b{color:#8a6a12;}
+
+/* ================= 响应式 ================= */
+@media (max-width:760px){
+  .ghero{padding:120px 0 70px;min-height:72svh;}
+  .sg-controls{gap:12px;}
+  .sg-gen{flex:1 1 100%;}
+}
