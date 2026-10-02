@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跳步舒尔特 🦘 曦曦的游戏屋</title>
+<meta name="description" content="舒尔特方格的升级版！数字不再是 1、2、3，而是跳着数：每次加 2、加 7 还是加 9？边找边心算，越跳越聪明。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* 跳步舒尔特专属：三位数也能放得下 */
+.jp-hint{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  margin:0 0 14px;padding:10px 14px;border-radius:14px;
+  background:linear-gradient(135deg,#eafaf1,#fff7e0);border:1.5px dashed #7ed6a8;
+  font-size:14.5px;color:var(--ink-2,#4a5b52);text-align:center;}
+.jp-hint b{color:#2f9d6d;font-size:16px;}
+.jp-cell{font-size:17px;font-weight:800;}
+@media (max-width:400px){.jp-cell{font-size:15.5px;}}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+      </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🦘 Game · 跳着数！</p>
+      <h1 class="ghero__title reveal">跳步舒尔特</h1>
+      <p class="ghero__sub reveal">数字不再乖乖排队啦——这次它们<strong>蹦蹦跳跳</strong>：每次加 2？加 7？还是加 9？算好了再点！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-controls">
+          <div class="sg-sizes" role="group" aria-label="选择跳步难度">
+            <button class="sg-size" data-min="2" data-max="3" type="button">入门<br><small>加 2~3</small></button>
+            <button class="sg-size" data-min="4" data-max="6" type="button">进阶<br><small>加 4~6</small></button>
+            <button class="sg-size" data-min="7" data-max="9" type="button">挑战<br><small>加 7~9</small></button>
+          </div>
+          <div class="sg-stats">
+            <span class="sg-stat">⏱ 用时 <b id="jpTimer">00:00.00</b></span>
+            <span class="sg-stat">🎯 下一个 <b id="jpTarget">—</b></span>
+            <span class="sg-stat">🌟 最佳 <b id="jpBest">—</b></span>
+          </div>
+          <button class="btn btn--primary sg-gen" id="jpGen" type="button">生成新方格 🎲</button>
+        </div>
+
+        <p class="jp-hint" id="jpHint">先在上面选一个难度吧～ 🦘</p>
+
+        <div class="sg-board" id="jpBoard" aria-live="polite">
+          <p class="sg-placeholder">选好难度，点上面的按钮开始跳跃吧～ 🌱</p>
+        </div>
+
+        <p class="sg-result" id="jpResult"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🦘</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选一个<strong>跳步难度</strong>：入门每次加 2~3，进阶加 4~6，挑战加 7~9！</li>
+        <li>点「<b>生成新方格</b>」，上面会告诉你<strong>从几开始、每次加几</strong>。</li>
+        <li>在格子里按顺序找出它们：比如从 3 开始每次加 7，那就要找 <b>3 → 10 → 17 → 24……</b></li>
+        <li>下一个数要<b>自己心算</b>出来再找，找对一个变绿一个。</li>
+        <li><b>第一次点击开始计时</strong>，25 个全部点完自动停止。</li>
+        <li>每个难度的<b>最佳成绩</b>会自动保存，随时来打破纪录！</li>
+        <li class="rules-tip">💡 小秘诀：先在心里默念「加 7」，眼睛扫格子找比当前数大 7 的那个，会越找越快哦！</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-jump.js"></script>
+</body>
+</html>
