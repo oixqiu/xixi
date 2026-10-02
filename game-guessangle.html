@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预估角度 👀 曦曦的游戏屋</title>
+<meta name="description" content="一个没有标注的角，它是 15°、60° 还是 135°？凭感觉选一选，练出对角度的好直觉！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* 预估角度专属 */
+.ga-stage{display:flex;justify-content:center;margin:4px 0 16px;}
+.ga-stage svg{width:100%;max-width:360px;height:auto;display:block;}
+.ga-opts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.ga-opt{min-width:86px;padding:12px 12px;border-radius:14px;border:2px solid #bfe9d3;
+  background:#fff;font-size:17px;font-weight:800;color:#33463c;cursor:pointer;
+  transition:transform .15s ease;}
+.ga-opt:hover{transform:translateY(-2px);border-color:#7ed6a8;}
+.ga-opt:active{transform:scale(.95);}
+.ga-opt.is-ok{background:#7ed6a8;color:#fff;border-color:#5cb98c;}
+.ga-opt.is-bad{background:#ffd6d6;color:#a33a3a;border-color:#f0a2a2;}
+.ga-opt.is-dim{opacity:.4;}
+.ga-fb{text-align:center;font-size:15px;font-weight:700;color:#4a5b52;min-height:24px;margin:12px 0 4px;}
+.ga-next{display:block;margin:0 auto 6px;visibility:hidden;}
+.ga-next.is-show{visibility:visible;}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+      </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">👀 Game · 角度直觉</p>
+      <h1 class="ghero__title reveal">预估角度</h1>
+      <p class="ghero__sub reveal">这个角大概是<strong>多少度</strong>？不能量，只能凭感觉猜——猜着猜着，眼睛就变成量角器啦！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-stats" style="justify-content:center;">
+          <span class="sg-stat">📋 第 <b id="gaNo">—</b> / 10 题</span>
+          <span class="sg-stat">⭐ 答对 <b id="gaScore">0</b></span>
+          <span class="sg-stat">🌟 最佳 <b id="gaBest">—</b></span>
+        </div>
+
+        <div class="ga-stage" id="gaStage" aria-live="polite">
+          <p class="sg-placeholder">点下面的按钮开始吧～ 👀</p>
+        </div>
+
+        <div class="ga-opts" id="gaOpts"></div>
+        <p class="ga-fb" id="gaFb"></p>
+        <button class="btn btn--primary ga-next" id="gaNext" type="button">下一题 ▶</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>👀</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>屏幕上会出现一个<strong>没有标注度数</strong>的角。</li>
+        <li>凭感觉从四个选项里选出它的度数，比如 15°、60°、135°、175°。</li>
+        <li>选完会亮出<strong>真实度数</strong>——对比一下，你猜差了多少？</li>
+        <li>一轮 <b>10 题</b>，看看能凭感觉答对几题。</li>
+        <li><b>最佳成绩</b>会自动保存，随时来打破纪录！</li>
+        <li class="rules-tip">💡 小秘诀：先想好参照物——直角是 90°，平角的一半就是它；比直角小的叫锐角，比直角大的叫钝角。拿它们当尺子去量，会越猜越准哦！</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-guessangle.js"></script>
+</body>
+</html>
