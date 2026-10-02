@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我的游戏 🎮 曦曦的空间</title>
-<meta name="description" content="曦曦的小游戏屋 —— 舒尔特方格练眼力，剪子包袱锤比运气，以后还会有更多游戏！">
+<meta name="description" content="曦曦的小游戏屋 —— 舒尔特方格、剪子包袱锤、猜数字、打地鼠、彩虹蛋蛋，五个游戏随便玩！">
 <meta name="theme-color" content="#fbfef8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/style.css">
@@ -24,7 +24,6 @@
     </a>
     <nav class="nav__links" id="navLinks">
       <a href="index.html#about">关于我</a>
-      <a href="index.html#hobby">我的爱好</a>
       <a href="index.html#album">小相册</a>
       <a href="index.html#diary">小日记</a>
       <a href="index.html#dream">我的梦想</a>
@@ -47,135 +46,58 @@
       <p class="ghero__badge reveal">🎮 我的游戏屋</p>
       <h1 class="ghero__title reveal">玩一玩，<span class="ghero__title-accent">动动小脑筋</span></h1>
       <p class="ghero__sub reveal">
-        这里是我的小游戏屋～今天先开了两个游戏，
-        以后还会有更多好玩的！选一个开始吧 👇
+        游戏屋现在有 <strong>5 个游戏</strong>啦！每个游戏都有自己的小房间，
+        点一张卡片就进去玩 👇
       </p>
-      <div class="ghero__nav reveal">
-        <a class="btn btn--primary" href="#schulte">🧠 舒尔特方格</a>
-        <a class="btn btn--ghost" href="#rps">✌️ 剪子包袱锤</a>
-      </div>
-      <p class="ghero__more reveal">🔒 敬请期待更多游戏……</p>
     </div>
   </section>
 
-  <!-- ===== 游戏一：舒尔特方格 ===== -->
-  <section class="section" id="schulte">
+  <!-- ===== 游戏卡片 ===== -->
+  <section class="section" id="allgames" style="padding-top:36px;">
     <div class="wrap">
-      <header class="sec-head reveal">
-        <p class="sec-head__kicker">Game 01</p>
-        <h2 class="sec-head__title">🧠 舒尔特方格</h2>
-        <div class="sec-head__line" aria-hidden="true"><span></span><em>🔢</em><span></span></div>
-        <p class="sec-head__desc">
-          按 <strong>1 → 2 → 3……</strong> 的顺序，把数字一个一个找出来，越快越厉害！
-          选好大小，点「生成方格」就开始。
-        </p>
-      </header>
-
-      <div class="game-card reveal">
-        <!-- 控制区 -->
-        <div class="sg-controls">
-          <div class="sg-sizes" role="group" aria-label="选择方格大小">
-            <button class="sg-size is-on" data-n="3" type="button">3×3<br><small>9 宫格</small></button>
-            <button class="sg-size" data-n="4" type="button">4×4<br><small>16 宫格</small></button>
-            <button class="sg-size" data-n="5" type="button">5×5<br><small>25 宫格</small></button>
-          </div>
-          <div class="sg-stats">
-            <span class="sg-stat">⏱ 用时 <b id="sgTimer">00:00.00</b></span>
-            <span class="sg-stat">🎯 下一个 <b id="sgTarget">—</b></span>
-            <span class="sg-stat">🌟 最佳 <b id="sgBest">—</b></span>
-          </div>
-          <button class="btn btn--primary sg-gen" id="sgGen" type="button">生成新方格 🎲</button>
-        </div>
-
-        <!-- 方格 -->
-        <div class="sg-board" id="sgBoard" aria-live="polite">
-          <p class="sg-placeholder">选好大小，点上面的按钮生成方格吧～ 🌱</p>
-        </div>
-
-        <!-- 结果 -->
-        <p class="sg-result" id="sgResult"></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 游戏二：剪子包袱锤 ===== -->
-  <section class="section section--tint" id="rps">
-    <div class="wrap">
-      <header class="sec-head reveal">
-        <p class="sec-head__kicker">Game 02</p>
-        <h2 class="sec-head__title">✌️ 剪子包袱锤</h2>
-        <div class="sec-head__line" aria-hidden="true"><span></span><em>✊</em><span></span></div>
-        <p class="sec-head__desc">
-          你先出拳，我也会偷偷出我的——<strong>但是先不给你看</strong>😏
-          然后一起「亮出来」，看看谁赢！
-        </p>
-      </header>
-
-      <div class="game-card reveal">
-        <!-- 对战台 -->
-        <div class="rps-arena">
-          <div class="rps-side">
-            <p class="rps-side__label">你 👧</p>
-            <div class="rps-hand" id="rpsYou">❔</div>
-          </div>
-          <div class="rps-vs" aria-hidden="true">VS</div>
-          <div class="rps-side">
-            <p class="rps-side__label">电脑 🤖</p>
-            <div class="rps-hand" id="rpsCpu">❔</div>
-          </div>
-        </div>
-
-        <p class="rps-verdict" id="rpsVerdict">先选一个出拳吧～</p>
-
-        <!-- 选择区 -->
-        <div class="rps-picks" id="rpsPicks">
-          <button class="rps-pick" data-choice="rock" type="button"><span>✊</span>石头</button>
-          <button class="rps-pick" data-choice="scissors" type="button"><span>✌️</span>剪刀</button>
-          <button class="rps-pick" data-choice="paper" type="button"><span>🖐️</span>布</button>
-        </div>
-
-        <div class="rps-actions">
-          <button class="btn btn--primary rps-btn" id="rpsReveal" type="button" hidden>亮出来比一比！✨</button>
-          <button class="btn btn--ghost rps-btn" id="rpsAgain" type="button" hidden>再来一局 🔄</button>
-        </div>
-
-        <!-- 计分板 -->
-        <div class="rps-score">
-          <span class="rps-chip rps-chip--you">你 🏆 <b id="rpsWin">0</b></span>
-          <span class="rps-chip rps-chip--cpu">电脑 🤖 <b id="rpsLose">0</b></span>
-          <span class="rps-chip">平局 🤝 <b id="rpsDraw">0</b></span>
-          <span class="rps-chip rps-chip--streak">当前连胜 🔥 <b id="rpsStreak">0</b></span>
-          <span class="rps-chip">最高连胜 ⭐ <b id="rpsBest">0</b></span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 期待更多 ===== -->
-  <section class="section gmore">
-    <div class="wrap">
-      <header class="sec-head reveal">
-        <p class="sec-head__kicker">Coming Soon</p>
-        <h2 class="sec-head__title">还想玩什么？</h2>
-        <div class="sec-head__line" aria-hidden="true"><span></span><em>🎈</em><span></span></div>
-        <p class="sec-head__desc">这个游戏屋会慢慢长大，下一游戏正在小花园里发芽 🌱</p>
-      </header>
       <div class="grid grid--hobby">
-        <article class="hobby reveal" style="--c1:#e6f7ec;--c2:#c9efdc">
+
+        <a class="hobby reveal" href="game-schulte.html" style="--c1:#e6f7ec;--c2:#c9efdc">
+          <div class="hobby__ico">🧠</div>
+          <h3>舒尔特方格</h3>
+          <p>按顺序找数字，练眼力又练专注，看谁最快！</p>
+          <p style="margin-top:8px;font-weight:800;color:var(--leaf);">开玩 →</p>
+        </a>
+
+        <a class="hobby reveal" href="game-rps.html" style="--c1:#fff4d6;--c2:#ffe29a">
+          <div class="hobby__ico">✌️</div>
+          <h3>剪子包袱锤</h3>
+          <p>你先出拳，电脑偷偷出好先不亮，亮出来比一比！</p>
+          <p style="margin-top:8px;font-weight:800;color:var(--leaf);">开玩 →</p>
+        </a>
+
+        <a class="hobby reveal" href="game-guess.html" style="--c1:#e4f1ff;--c2:#cfe9ff">
+          <div class="hobby__ico">🔢</div>
+          <h3>猜数字</h3>
+          <p>大了还是小了？像小侦探一样把数字揪出来！</p>
+          <p style="margin-top:8px;font-weight:800;color:var(--leaf);">开玩 →</p>
+        </a>
+
+        <a class="hobby reveal" href="game-mole.html" style="--c1:#ffe3ed;--c2:#ffd0e0">
+          <div class="hobby__ico">🔨</div>
+          <h3>打地鼠</h3>
+          <p>地鼠咚咚冒头，趁它溜走前敲中 10 只！</p>
+          <p style="margin-top:8px;font-weight:800;color:var(--leaf);">开玩 →</p>
+        </a>
+
+        <a class="hobby reveal" href="game-eggy.html" style="--c1:#f1e9ff;--c2:#d9c9f2">
+          <div class="hobby__ico">🥚</div>
+          <h3>彩虹蛋蛋</h3>
+          <p>挑一只蛋蛋，在草地上跑来跑去收集彩虹糖！</p>
+          <p style="margin-top:8px;font-weight:800;color:var(--leaf);">开玩 →</p>
+        </a>
+
+        <article class="hobby reveal" style="--c1:#e6f7ec;--c2:#bfe9d3">
           <div class="hobby__ico">🌳</div>
-          <h3>更多小游戏</h3>
-          <p>记忆翻牌、找不同……慢慢都会住进来。</p>
+          <h3>敬请期待</h3>
+          <p>游戏屋会慢慢长大，下一游戏正在小花园里发芽……</p>
         </article>
-        <article class="hobby reveal" style="--c1:#ffe3ed;--c2:#ffd0e0">
-          <div class="hobby__ico">💡</div>
-          <h3>有想玩的？</h3>
-          <p>告诉爸爸或妈妈，把你的想法写到游戏屋来！</p>
-        </article>
-        <article class="hobby reveal" style="--c1:#fff4d6;--c2:#ffe29a">
-          <div class="hobby__ico">🏡</div>
-          <h3>回小花园</h3>
-          <p>玩累了，回<a href="index.html" style="color:var(--leaf-deep);font-weight:700;">曦曦的空间</a>看看花吧。</p>
-        </article>
+
       </div>
     </div>
   </section>
@@ -196,6 +118,5 @@
 <button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
 
 <script src="assets/js/main.js"></script>
-<script src="assets/js/games.js"></script>
 </body>
 </html>

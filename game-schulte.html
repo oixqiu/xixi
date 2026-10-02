@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>舒尔特方格 🧠 曦曦的游戏屋</title>
+<meta name="description" content="按顺序找出所有数字，看看你多用时！3×3、4×4、5×5 三种规格，还会记住你的最佳成绩。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="game-rps.html">✌️ 剪子包袱锤</a>
+      <a href="game-guess.html">🔢 猜数字</a>
+      <a href="game-mole.html">🔨 打地鼠</a>
+      <a href="game-eggy.html">🥚 彩虹蛋蛋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🧠 Game · 眼力大挑战</p>
+      <h1 class="ghero__title reveal">舒尔特方格</h1>
+      <p class="ghero__sub reveal">按 <strong>1 → 2 → 3……</strong> 的顺序把数字全部找出来，越快越厉害！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-controls">
+          <div class="sg-sizes" role="group" aria-label="选择方格大小">
+            <button class="sg-size is-on" data-n="3" type="button">3×3<br><small>9 宫格</small></button>
+            <button class="sg-size" data-n="4" type="button">4×4<br><small>16 宫格</small></button>
+            <button class="sg-size" data-n="5" type="button">5×5<br><small>25 宫格</small></button>
+          </div>
+          <div class="sg-stats">
+            <span class="sg-stat">⏱ 用时 <b id="sgTimer">00:00.00</b></span>
+            <span class="sg-stat">🎯 下一个 <b id="sgTarget">—</b></span>
+            <span class="sg-stat">🌟 最佳 <b id="sgBest">—</b></span>
+          </div>
+          <button class="btn btn--primary sg-gen" id="sgGen" type="button">生成新方格 🎲</button>
+        </div>
+
+        <div class="sg-board" id="sgBoard" aria-live="polite">
+          <p class="sg-placeholder">选好大小，点上面的按钮生成方格吧～ 🌱</p>
+        </div>
+
+        <p class="sg-result" id="sgResult"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🧠</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>先选<strong>方格大小</strong>：9 宫格最简单，25 宫格最难。</li>
+        <li>点「<b>生成新方格</b>」，数字会被打乱放在格子里。</li>
+        <li>按 <b>1、2、3……</b> 的顺序依次点，点对一个变绿一个。</li>
+        <li><b>第一次点击开始计时</b>，全部点完自动停止。</li>
+        <li>每个规格的<b>最佳成绩</b>会自动保存，随时来打破纪录！</li>
+        <li class="rules-tip">💡 小秘诀：眼睛盯着方格正中间，用余光找数字，会越来越快哦！这也是很多飞行员在练的注意力游戏～</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-schulte.js"></script>
+</body>
+</html>

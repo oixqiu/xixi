@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>彩虹蛋蛋 🥚 曦曦的游戏屋</title>
+<meta name="description" content="选一只喜欢的蛋蛋，在草地上跑来跑去收集彩虹糖！30 秒限时，看谁收集得多。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="game-schulte.html">🧠 舒尔特方格</a>
+      <a href="game-rps.html">✌️ 剪子包袱锤</a>
+      <a href="game-guess.html">🔢 猜数字</a>
+      <a href="game-mole.html">🔨 打地鼠</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🥚 Game · 彩虹糖大冒险</p>
+      <h1 class="ghero__title reveal">彩虹蛋蛋</h1>
+      <p class="ghero__sub reveal">从 7 只蛋蛋里挑一只，在草地上<b>跑来跑去</b>收集彩虹糖 🍬 30 秒内看谁收得最多！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <!-- 选角 -->
+        <p class="rps-side__label" style="margin-bottom:12px;">先选一只你的蛋蛋 👇</p>
+        <div class="eggy-picker" id="eggPicker">
+          <button class="eggy-choice is-on" data-c="#ffb8cf" type="button"><span class="egg" style="--ec:#ffb8cf"><span class="egg-belly"></span></span>粉蛋蛋 💖</button>
+          <button class="eggy-choice" data-c="#9ed4ff" type="button"><span class="egg" style="--ec:#9ed4ff"><span class="egg-belly"></span></span>蓝蛋蛋 🩵</button>
+          <button class="eggy-choice" data-c="#8fd9b6" type="button"><span class="egg" style="--ec:#8fd9b6"><span class="egg-belly"></span></span>绿蛋蛋 💚</button>
+          <button class="eggy-choice" data-c="#ffd97a" type="button"><span class="egg" style="--ec:#ffd97a"><span class="egg-belly"></span></span>黄蛋蛋 💛</button>
+          <button class="eggy-choice" data-c="#ff9b9b" type="button"><span class="egg" style="--ec:#ff9b9b"><span class="egg-belly"></span></span>红蛋蛋 ❤️</button>
+          <button class="eggy-choice" data-c="#cfd8d3" type="button"><span class="egg" style="--ec:#cfd8d3"><span class="egg-belly"></span></span>灰蛋蛋 🤍</button>
+          <button class="eggy-choice" data-c="#d8c8f5" type="button"><span class="egg" style="--ec:#d8c8f5"><span class="egg-belly"></span></span>紫蛋蛋 💜</button>
+        </div>
+
+        <!-- 计分 -->
+        <div class="eggy-hud">
+          <span class="sg-stat">🍬 收集 <b id="egScore">0</b></span>
+          <span class="sg-stat">⏱ 剩余 <b id="egTime">30.0</b> 秒</span>
+          <span class="sg-stat">🌟 最高 <b id="egBest">—</b></span>
+        </div>
+
+        <!-- 草地 -->
+        <div class="eggy-arena is-idle" id="egArena">
+          <div class="eggy-player" id="egPlayer"><span class="egg" id="egEgg" style="--ec:#ffb8cf"><span class="egg-belly"></span></span></div>
+        </div>
+
+        <!-- 方向钮 -->
+        <div class="eggy-dpad" id="egPad">
+          <button class="eggy-key eggy-key--up" data-dir="up" type="button" aria-label="向上">⬆️</button>
+          <button class="eggy-key eggy-key--left" data-dir="left" type="button" aria-label="向左">⬅️</button>
+          <button class="eggy-key eggy-key--down" data-dir="down" type="button" aria-label="向下">⬇️</button>
+          <button class="eggy-key eggy-key--right" data-dir="right" type="button" aria-label="向右">➡️</button>
+        </div>
+
+        <div class="eggy-actions">
+          <button class="btn btn--primary" id="egStart" type="button">出发！🥚</button>
+        </div>
+
+        <p class="eggy-result" id="egResult"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🥚</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>从 <b>7 只蛋蛋</b>里选一只你最喜欢的颜色（粉 / 蓝 / 绿 / 黄 / 红 / 灰 / 紫）。</li>
+        <li>点「<b>出发！</b>」游戏开始，草地上会出现彩虹糖 🍬。</li>
+        <li>用<b>方向键 / WASD</b> 控制，手机上用下面的<b>方向按钮</b>，跑过去碰糖就吃掉。</li>
+        <li>吃掉一颗马上会出现下一颗，<b>30 秒</b>内收集越多越厉害！</li>
+        <li>时间到显示成绩，<b>最高纪录</b>会保存，换蛋蛋再战！</li>
+        <li class="rules-tip">💡 小秘诀：别来回跑冤枉路，眼睛先看下一颗糖在哪，抄近路直线冲过去！电脑上用 WASD 比方向键更快哦。</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-eggy.js"></script>
+</body>
+</html>

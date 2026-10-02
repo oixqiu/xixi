@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>剪子包袱锤 ✌️ 曦曦的游戏屋</title>
+<meta name="description" content="你先出拳，电脑偷偷出好先不亮，一起亮出来比一比！还有连胜纪录哦。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="game-schulte.html">🧠 舒尔特方格</a>
+      <a href="game-guess.html">🔢 猜数字</a>
+      <a href="game-mole.html">🔨 打地鼠</a>
+      <a href="game-eggy.html">🥚 彩虹蛋蛋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">✌️ Game · 手气大对决</p>
+      <h1 class="ghero__title reveal">剪子包袱锤</h1>
+      <p class="ghero__sub reveal">你先出拳，电脑也会偷偷出我的——<strong>先不给你看</strong>😏 然后一起亮出来！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="rps-arena">
+          <div class="rps-side">
+            <p class="rps-side__label">你 👧</p>
+            <div class="rps-hand" id="rpsYou">❔</div>
+          </div>
+          <div class="rps-vs" aria-hidden="true">VS</div>
+          <div class="rps-side">
+            <p class="rps-side__label">电脑 🤖</p>
+            <div class="rps-hand" id="rpsCpu">❔</div>
+          </div>
+        </div>
+
+        <p class="rps-verdict" id="rpsVerdict">先选一个出拳吧～</p>
+
+        <div class="rps-picks" id="rpsPicks">
+          <button class="rps-pick" data-choice="rock" type="button"><span>✊</span>石头</button>
+          <button class="rps-pick" data-choice="scissors" type="button"><span>✌️</span>剪刀</button>
+          <button class="rps-pick" data-choice="paper" type="button"><span>🖐️</span>布</button>
+        </div>
+
+        <div class="rps-actions">
+          <button class="btn btn--primary rps-btn" id="rpsReveal" type="button" hidden>亮出来比一比！✨</button>
+          <button class="btn btn--ghost rps-btn" id="rpsAgain" type="button" hidden>再来一局 🔄</button>
+        </div>
+
+        <div class="rps-score">
+          <span class="rps-chip rps-chip--you">你 🏆 <b id="rpsWin">0</b></span>
+          <span class="rps-chip rps-chip--cpu">电脑 🤖 <b id="rpsLose">0</b></span>
+          <span class="rps-chip">平局 🤝 <b id="rpsDraw">0</b></span>
+          <span class="rps-chip rps-chip--streak">当前连胜 🔥 <b id="rpsStreak">0</b></span>
+          <span class="rps-chip">最高连胜 ⭐ <b id="rpsBest">0</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>✊</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>在三个手势里点一个：<b>石头 ✊ / 剪刀 ✌️ / 布 🖐️</b>。</li>
+        <li>你一点，电脑就<b>偷偷</b>出好它的手势（屏幕上只显示 ❔）。</li>
+        <li>点「<b>亮出来比一比</b>」，两边一起翻开！</li>
+        <li>胜负规则：石头砸剪刀、剪刀剪布、布包石头。</li>
+        <li>计分板会记<b>你赢几局、电脑赢几局、平局</b>，还有<b>连胜纪录</b>——连赢 3 局以上会有惊喜提示！</li>
+        <li class="rules-tip">💡 悄悄说：电脑是随机出的，没有人能作弊，纯看运气和小心机～</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-rps.js"></script>
+</body>
+</html>

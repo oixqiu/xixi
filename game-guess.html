@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猜数字 🔢 曦曦的游戏屋</title>
+<meta name="description" content="心里想好一个数，你猜我提示大了还是小了，看谁用最少步数猜中！100、1000、10000 三种难度。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="game-schulte.html">🧠 舒尔特方格</a>
+      <a href="game-rps.html">✌️ 剪子包袱锤</a>
+      <a href="game-mole.html">🔨 打地鼠</a>
+      <a href="game-eggy.html">🥚 彩虹蛋蛋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🔢 Game · 侦探时刻</p>
+      <h1 class="ghero__title reveal">猜数字</h1>
+      <p class="ghero__sub reveal">我心里悄悄想好了一个数，你猜——我只告诉你<strong>「大了」还是「小了」</strong>，看谁用最少步数猜中！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="gq-controls">
+          <div class="gq-sizes" role="group" aria-label="选择难度">
+            <button class="sg-size is-on" data-max="100" type="button">⭐ 简单<br><small>1 ~ 100</small></button>
+            <button class="sg-size" data-max="1000" type="button">⭐⭐ 普通<br><small>1 ~ 1000</small></button>
+            <button class="sg-size" data-max="10000" type="button">⭐⭐⭐ 困难<br><small>1 ~ 10000</small></button>
+          </div>
+          <div class="gq-stats">
+            <span class="sg-stat">🎯 已猜 <b id="gqSteps">0</b> 步</span>
+            <span class="sg-stat">🌟 最少步数 <b id="gqBest">—</b></span>
+          </div>
+          <div class="gq-range"><span>可能的范围：<b id="gqLow">1</b> ~ <b id="gqHigh">100</b></span></div>
+          <div class="gq-row">
+            <input class="gq-input" id="gqInput" type="number" inputmode="numeric" min="1" placeholder="?" aria-label="输入你猜的数字">
+            <button class="btn btn--primary" id="gqBtn" type="button">猜！🔍</button>
+            <button class="btn btn--ghost" id="gqNew" type="button">换一个数 🔄</button>
+          </div>
+        </div>
+
+        <p class="gq-feedback" id="gqFeedback">我先想好一个数啦，来猜吧～</p>
+
+        <div class="gq-hist" id="gqHist"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🔢</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选难度：<b>简单 1~100</b>、<b>普通 1~1000</b>、<b>困难 1~10000</b>。</li>
+        <li>系统会<b>悄悄想好一个随机数</b>，谁也不知道是几。</li>
+        <li>在输入框输入一个数，点「<b>猜！</b>」（按回车也行）。</li>
+        <li>我会提示「<b>大了 ⬇️</b>」或「<b>小了 ⬆️</b>」——大了就往小猜，小了就往大猜。</li>
+        <li>猜中即胜利！<b>用的步数越少越厉害</b>，每个难度的最少步数纪录会保存。</li>
+        <li>下面的「可能的范围」会帮你自动缩小包围圈，历史记录里也能看到每次猜的结果。</li>
+        <li class="rules-tip">💡 侦探秘诀：每次都猜「范围的正中间」，这样不管提示大了还是小了，都能把范围砍掉一半！100 以内最多 7 步、1000 以内最多 10 步、10000 以内最多 14 步就必中～</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-guess.js"></script>
+</body>
+</html>

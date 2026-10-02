@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打地鼠 🔨 曦曦的游戏屋</title>
+<meta name="description" content="地鼠冒头就赶紧敲！点中 10 只看谁用时最短。9/16/25/36 宫格，三种难度。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="game-schulte.html">🧠 舒尔特方格</a>
+      <a href="game-rps.html">✌️ 剪子包袱锤</a>
+      <a href="game-guess.html">🔢 猜数字</a>
+      <a href="game-eggy.html">🥚 彩虹蛋蛋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🔨 Game · 手速大考验</p>
+      <h1 class="ghero__title reveal">打地鼠</h1>
+      <p class="ghero__sub reveal">地鼠会从洞里<b>咚咚咚</b>冒出来，趁它缩回去之前敲中它！敲中 <strong>10 只</strong>就通关～</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-controls">
+          <div class="sg-sizes" role="group" aria-label="选择洞数">
+            <button class="sg-size is-on" data-n="3" type="button">3×3<br><small>9 洞</small></button>
+            <button class="sg-size" data-n="4" type="button">4×4<br><small>16 洞</small></button>
+            <button class="sg-size" data-n="5" type="button">5×5<br><small>25 洞</small></button>
+            <button class="sg-size" data-n="6" type="button">6×6<br><small>36 洞</small></button>
+          </div>
+          <div class="sg-sizes" role="group" aria-label="选择难度">
+            <button class="sg-size is-on" data-d="2000" type="button">😀 轻松<br><small>2 秒</small></button>
+            <button class="sg-size" data-d="1000" type="button">😅 普通<br><small>1 秒</small></button>
+            <button class="sg-size" data-d="500" type="button">🔥 神速<br><small>0.5 秒</small></button>
+          </div>
+          <div class="sg-stats">
+            <span class="sg-stat">🐹 已敲中 <b id="mmHits">0</b>/10</span>
+            <span class="sg-stat">💨 溜走 <b id="mmMiss">0</b></span>
+            <span class="sg-stat">⏱ 用时 <b id="mmTimer">00:00.0</b></span>
+            <span class="sg-stat">🌟 最佳 <b id="mmBest">—</b></span>
+          </div>
+          <button class="btn btn--primary sg-gen" id="mmStart" type="button">开始游戏 🔨</button>
+        </div>
+
+        <div class="mole-board" id="mmBoard" aria-live="polite"></div>
+
+        <p class="mole-result" id="mmResult"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🐹</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选<b>洞数</b>（9 ~ 36 个洞）和<b>难度</b>：轻松=地鼠待 2 秒，普通=1 秒，神速=只待 0.5 秒！</li>
+        <li>点「<b>开始游戏</b>」，地鼠会从随机一个洞里冒出来。</li>
+        <li>趁它缩回去之前<b>点它</b>！点中一只记 1 分，它会立刻缩下去。</li>
+        <li>点慢了它就<b>溜走 💨</b>；点空洞会被笑话一下（不计分）。</li>
+        <li>敲满 <b>10 只</b>游戏结束，<b>用时越短越厉害</b>！每档「洞数 + 难度」的最佳成绩都会保存。</li>
+        <li class="rules-tip">💡 小秘诀：手悬在屏幕中间，眼睛看全场，哪只冒头点哪只。难度越高越考验反应力，加油！</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-mole.js"></script>
+</body>
+</html>
