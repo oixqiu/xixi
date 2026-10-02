@@ -23,6 +23,7 @@
   var sgStartAt = 0;
   var sgTickId = null;
   var sgMistakes = 0;
+  var sgFitSquares = sgBoard ? window.gameFitSquares(sgBoard, '.sg-cell') : function () {};
 
   function fmt(ms) {
     var m = Math.floor(ms / 60000);
@@ -81,6 +82,7 @@
       b.addEventListener('click', function () { sgClick(b, v); });
       sgBoard.appendChild(b);
     });
+    sgFitSquares();  // 把格子精确设成正方形（兼容不支持 aspect-ratio 的老内核）
   }
 
   function sgClick(cell, v) {

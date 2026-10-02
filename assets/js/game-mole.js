@@ -26,6 +26,7 @@
 
   var MM_KEY = 'xixi-mole-best';
   var TARGET = 10;
+  var fitSquares = board ? window.gameFitSquares(board, '.mole-hole') : function () {};
   var holes = [];          // {el, mole}
   var mmN = 3;             // 洞数边长
   var mmDur = 2000;        // 地鼠停留时长
@@ -83,6 +84,7 @@
       board.appendChild(hole);
       holes.push({ el: hole, mole: mole });
     })(i);
+    fitSquares();  // 把洞精确设成正方形（兼容不支持 aspect-ratio 的老内核）
   }
 
   function popRandom() {
