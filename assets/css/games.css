@@ -412,6 +412,52 @@
 .eggy-result.is-show{animation:pop .5s var(--ease);}
 .eggy-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px;}
 
+/* ================= 加法估算 ================= */
+.es-question{text-align:center;margin:10px 0 4px;}
+.es-ask{font-size:17px;font-weight:800;color:var(--ink-2);margin:0 0 14px;}
+.es-formula{
+  font-size:34px;font-weight:900;color:var(--leaf-deep);letter-spacing:.02em;
+  background:linear-gradient(135deg,#f2fbf5,#e9f7ee);
+  border:1.5px solid var(--line);border-radius:var(--r-md);
+  padding:22px 16px;margin:0 0 12px;line-height:1.35;
+  word-break:break-all;
+}
+.es-hint{font-size:13.5px;color:var(--ink-3);margin:0;}
+.es-hint b{color:var(--leaf-deep);}
+.es-options{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;margin:18px 0 4px;
+}
+.es-opt{
+  font-family:inherit;font-size:24px;font-weight:900;color:var(--leaf-deep);
+  background:#fff;border:2px solid var(--line);border-radius:var(--r-md);
+  padding:20px 10px;cursor:pointer;box-shadow:var(--sh-sm);
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease),border-color .2s,background .3s;
+  word-break:break-all;line-height:1.2;
+}
+.es-opt:hover:not(:disabled){transform:translateY(-3px);border-color:var(--mint);box-shadow:var(--sh-md);}
+.es-opt:active:not(:disabled){transform:scale(.96);}
+.es-opt:disabled{cursor:default;opacity:.72;}
+.es-opt.is-right{background:linear-gradient(135deg,var(--mint),var(--mint-soft));border-color:transparent;color:#fff;opacity:1;animation:cellPop .35s var(--ease);}
+.es-opt.is-picked-right{box-shadow:0 0 0 3px rgba(126,214,168,.45) inset, var(--sh-md);}
+.es-opt.is-wrong{background:var(--pink-soft);border-color:var(--pink);color:#c76287;animation:cellShake .4s var(--ease);}
+.es-feedback{
+  text-align:center;margin:18px 0 0;min-height:26px;
+  font-size:15.5px;font-weight:700;color:var(--ink-2);line-height:1.6;
+}
+.es-feedback b{color:var(--leaf-deep);font-size:17px;}
+.es-feedback.is-ok{color:#2e8f5e;}
+.es-feedback.is-no{color:#c76287;}
+.es-actions{display:flex;justify-content:center;margin-top:16px;}
+.es-next[hidden]{display:none;}
+
+@media (max-width:760px){
+  .es-formula{font-size:26px;}
+  .es-opt{font-size:20px;padding:16px 8px;}
+}
+
 @media (max-width:760px){
   .ghero--mini{padding:112px 0 44px;}
 }
+
+

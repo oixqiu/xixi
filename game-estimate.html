@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>加法估算 🎯 曦曦的游戏屋</title>
+<meta name="description" content="一道加法题，四个答案都不精确——哪个更可能是对的？两位、三位、四位、五位差别很大，靠数字直觉快速判断！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="game-schulte.html">🧠 舒尔特方格</a>
+      <a href="game-rps.html">✌️ 剪子包袱锤</a>
+      <a href="game-guess.html">🔢 猜数字</a>
+      <a href="game-mole.html">🔨 打地鼠</a>
+      <a href="game-eggy.html">🥚 彩虹蛋蛋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🎯 Game · 数字直觉</p>
+      <h1 class="ghero__title reveal">答案更可能是什么？</h1>
+      <p class="ghero__sub reveal">一道加法题，四个答案<b>都不精确</b>——别算了，<strong>瞄一眼就知道大概多大</strong>！选最接近的那个～</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+
+        <div class="sg-controls">
+          <div class="sg-sizes" role="group" aria-label="选择难度">
+            <button class="sg-size is-on" data-d="2" type="button">⭐<br><small>答案是两位数</small></button>
+            <button class="sg-size" data-d="3" type="button">⭐⭐<br><small>答案是三位数</small></button>
+            <button class="sg-size" data-d="4" type="button">⭐⭐⭐<br><small>答案是四位数</small></button>
+            <button class="sg-size" data-d="5" type="button">⭐⭐⭐⭐<br><small>答案是五位数</small></button>
+          </div>
+          <div class="sg-stats">
+            <span class="sg-stat">📋 第 <b id="esNo">1</b>/10 题</span>
+            <span class="sg-stat">🌟 得分 <b id="esScore">0</b></span>
+            <span class="sg-stat">🔥 连对 <b id="esStreak">0</b></span>
+            <span class="sg-stat">🏆 最佳 <b id="esBest">—</b></span>
+          </div>
+        </div>
+
+        <div class="es-question">
+          <p class="es-ask">下面这道加法，答案<b>更可能</b>是哪一个？</p>
+          <p class="es-formula" id="esFormula">…</p>
+          <p class="es-hint">💡 四个选项都不精确，别硬算——想想结果大概是<b>几位数</b>、差不多多大，选最接近的！</p>
+        </div>
+
+        <div class="es-options" id="esOptions" aria-live="polite"></div>
+
+        <p class="es-feedback" id="esFeedback"></p>
+
+        <div class="es-actions">
+          <button class="btn btn--primary es-next" id="esNext" type="button" hidden>下一题 ➜</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🎯</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>屏幕上有一道<b>加法题</b>，下面四个选项——它们<b>都不是精确答案</b>！</li>
+        <li>四个选项差别很大：有两位数、三位数、四位数、<b>五位数的</b>，一眼就能分出大小。</li>
+        <li>别列竖式硬算！先想想：这些数加在一起，结果<b>大概是几位数？差不多多大？</b></li>
+        <li>选出你心目中<b>最接近</b>真实结果的那个，点它！</li>
+        <li>答对加 1 分、连对有 🔥 记录；一轮 <b>10 题</b>，10 分满分，最高分会保存下来。</li>
+        <li class="rules-tip">💡 小秘诀：比如 <b>198 + 27 + 1204</b>——200 多一点、30 不到、再加 1200 多，结果肯定是「一千多」，也就是四位数！直接排除两位数和三位数～ 这就是「估算」的魔法 ✨</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-estimate.js"></script>
+</body>
+</html>
