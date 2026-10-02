@@ -24,7 +24,7 @@
   var KEY  = 'xixi-flash-best';
   var TOTAL = 20;
 
-  var sp = '300-300';       // 当前节奏：显示-空白（毫秒）
+  var sp = '1000-300';       // 当前节奏：显示-空白（毫秒）
   var nums = [];            // 本轮数字串
   var hasD = [];            // 对应是否含目标
   var idx = 0;
