@@ -130,7 +130,7 @@
       gaOpts.appendChild(b);
     });
     gaFb.textContent = '';
-    gaNext.classList.remove('is-show');
+    gaNext.classList.add('is-hide');
     asking = true;
   }
 
@@ -153,12 +153,10 @@
       score++;
       gaScore.textContent = String(score);
       gaFb.textContent = '✅ 答对啦！它确实是 ' + cur.ans + '°';
-      say('答对啦！👀✨');
     } else {
       gaFb.textContent = 'ohh，正确答案是 ' + cur.ans + '°，差了 ' + Math.abs(v - cur.ans) + '°，下次会更准！';
-      say('没关系，记住这个感觉～');
     }
-    gaNext.classList.add('is-show');
+    gaNext.classList.remove('is-hide');
   }
 
   function next() {
@@ -182,7 +180,7 @@
       ? '🎉 新纪录！10 题答对 ' + score + ' 题！'
       : '👏 一轮结束，答对 ' + score + ' / 10 题';
     gaNext.textContent = '再玩一轮 🔄';
-    gaNext.classList.add('is-show');
+    gaNext.classList.remove('is-hide');
     say(isRecord ? '哇，新纪录！🌟' : '再来一轮试试！💪');
   }
 
