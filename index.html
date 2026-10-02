@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>曦曦的空间 🌸 一个十岁女孩的小花园</title>
+<meta name="description" content="曦曦的空间 —— 一个 10 岁女孩的小花园，藏着她的爱好、照片、小日记和梦想。">
+<meta name="theme-color" content="#fbfef8">
+<meta property="og:title" content="曦曦的空间 🌸">
+<meta property="og:description" content="一个 10 岁女孩的小花园，藏着她的爱好、照片、小日记和梦想。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/img/garden-hero.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ===== 飘落花瓣层 ===== -->
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<!-- ===== 导航 ===== -->
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="#top">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="#about">关于我</a>
+      <a href="#hobby">我的爱好</a>
+      <a href="#album">小相册</a>
+      <a href="#diary">小日记</a>
+      <a href="#dream">我的梦想</a>
+      <a href="#message" class="nav__cta">留个言</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="hero">
+    <div class="hero__bg" aria-hidden="true"></div>
+    <div class="hero__veil" aria-hidden="true"></div>
+
+    <div class="hero__content">
+      <p class="hero__badge reveal">🌷 欢迎来到我的小花园</p>
+      <h1 class="hero__title reveal">
+        <span class="hero__title-line">曦曦的</span>
+        <span class="hero__title-line hero__title-line--accent">空间</span>
+      </h1>
+      <p class="hero__sub reveal">
+        我今年 <strong>10 岁</strong>，喜欢画画、跳舞和一切甜甜的东西。<br>
+        这里放着我的小爱好、小照片、小日记，还有小小的梦想。
+      </p>
+      <div class="hero__actions reveal">
+        <a class="btn btn--primary" href="#about">先认识我一下 <span>🌱</span></a>
+        <a class="btn btn--ghost" href="#album">看看我的相册 <span>📷</span></a>
+      </div>
+      <div class="hero__meta reveal">
+        <span>🦋 花园里有蝴蝶</span>
+        <span>🌼 也有小兔子</span>
+        <span>🍓 还有草莓味的心情</span>
+      </div>
+    </div>
+
+    <a class="hero__scroll" href="#about" aria-label="向下滚动">
+      <span class="hero__scroll-dot"></span>
+    </a>
+
+    <img class="hero__bunny" src="assets/img/bunny.webp" alt="花丛里的小兔子" loading="lazy">
+  </section>
+
+  <!-- ===== 关于我 ===== -->
+  <section class="section" id="about">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">About Me</p>
+        <h2 class="sec-head__title">认识一下我吧</h2>
+        <div class="sec-head__line" aria-hidden="true">
+          <span></span><em>🌼</em><span></span>
+        </div>
+      </header>
+
+      <div class="about">
+        <!-- 右侧那张小卡：想换成自己的照片，把 src 改掉就好 -->
+        <div class="about__card reveal">
+          <img src="assets/img/bunny.webp" alt="花丛里的小兔子" loading="lazy">
+          <p class="about__card-cap">我最喜欢的小兔子 🐰</p>
+        </div>
+
+        <div class="about__text">
+          <p class="about__lead reveal">
+            Hi～我叫 <strong>曦曦</strong>，是一个爱笑、爱花的女孩。
+            我的世界里有彩色的画笔、转圈的裙摆，还有好多好多想做的事情。
+          </p>
+
+          <ul class="facts reveal">
+            <li><span class="facts__ico">🎂</span><b>年龄</b><em>10 岁</em></li>
+            <li><span class="facts__ico">🎨</span><b>最爱的颜色</b><em>薄荷绿 · 樱花粉</em></li>
+            <li><span class="facts__ico">🍰</span><b>最爱的食物</b><em>奶油蛋糕 · 草莓</em></li>
+            <li><span class="facts__ico">🐰</span><b>最喜欢的动物</b><em>小兔子</em></li>
+            <li><span class="facts__ico">🌻</span><b>最喜欢的花</b><em>向日葵</em></li>
+            <li><span class="facts__ico">📚</span><b>最近在看的书</b><em>童话故事集</em></li>
+          </ul>
+
+          <div class="quote reveal">
+            <span class="quote__mark">“</span>
+            <p>如果我有一整个花园，我要把它送给你一半。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 我的爱好 ===== -->
+  <section class="section section--tint" id="hobby">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">My Hobbies</p>
+        <h2 class="sec-head__title">我最喜欢做的事</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🌷</em><span></span></div>
+      </header>
+
+      <div class="grid grid--hobby">
+        <article class="hobby reveal" style="--c1:#ffe3ed;--c2:#ffd0e0">
+          <div class="hobby__ico">🎨</div>
+          <h3>画画</h3>
+          <p>一支笔一张纸，就能画出一整个花园。</p>
+        </article>
+        <article class="hobby reveal" style="--c1:#e6f7ec;--c2:#c9efdc">
+          <div class="hobby__ico">🩰</div>
+          <h3>跳舞</h3>
+          <p>音乐一响，我就想转圈圈，裙摆会开花。</p>
+        </article>
+        <article class="hobby reveal" style="--c1:#fff4d6;--c2:#ffe29a">
+          <div class="hobby__ico">📖</div>
+          <h3>看故事书</h3>
+          <p>童话里的公主都很勇敢，我也想那样。</p>
+        </article>
+        <article class="hobby reveal" style="--c1:#e4f1ff;--c2:#cfe9ff">
+          <div class="hobby__ico">🎵</div>
+          <h3>唱歌</h3>
+          <p>洗澡的时候是我开演唱会的时间。</p>
+        </article>
+        <article class="hobby reveal" style="--c1:#f1e9ff;--c2:#d9c9f2">
+          <div class="hobby__ico">🪴</div>
+          <h3>养小植物</h3>
+          <p>每天给它浇水，它就每天长高一点点。</p>
+        </article>
+        <article class="hobby reveal" style="--c1:#e6f7ec;--c2:#bfe9d3">
+          <div class="hobby__ico">🧩</div>
+          <h3>拼乐高</h3>
+          <p>小方块可以搭出城堡、飞船和秘密基地。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 小相册 ===== -->
+  <section class="section" id="album">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">My Album</p>
+        <h2 class="sec-head__title">我的小相册</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>📷</em><span></span></div>
+        <p class="sec-head__desc">把「这里放我的照片呀」的方块换成自己的照片，相册就长出来啦 ✨</p>
+      </header>
+
+      <div class="album">
+        <figure class="polaroid reveal" style="--tilt:-3deg">
+          <img src="assets/img/garden-hero.jpg" alt="花园">
+          <figcaption>春天的花园 🌸</figcaption>
+        </figure>
+        <figure class="polaroid polaroid--ph reveal" style="--tilt:2.5deg">
+          <div class="ph"><span>📷</span><small>这里放我的照片呀</small></div>
+          <figcaption>换一张照片</figcaption>
+        </figure>
+        <figure class="polaroid reveal" style="--tilt:-1.5deg">
+          <img src="assets/img/bunny.webp" alt="小兔子">
+          <figcaption>小兔子朋友 🐰</figcaption>
+        </figure>
+        <figure class="polaroid polaroid--ph reveal" style="--tilt:3deg">
+          <div class="ph"><span>🖼️</span><small>这里放我的照片呀</small></div>
+          <figcaption>换一张照片</figcaption>
+        </figure>
+        <figure class="polaroid reveal" style="--tilt:1.5deg">
+          <img src="assets/img/butterflies.webp" alt="蝴蝶">
+          <figcaption>会飞的蝴蝶 🦋</figcaption>
+        </figure>
+        <figure class="polaroid polaroid--ph reveal" style="--tilt:-2.5deg">
+          <div class="ph"><span>🌈</span><small>这里放我的照片呀</small></div>
+          <figcaption>换一张照片</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 小日记 ===== -->
+  <section class="section section--tint" id="diary">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">My Diary</p>
+        <h2 class="sec-head__title">我的小日记</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>✏️</em><span></span></div>
+      </header>
+
+      <div class="grid grid--diary">
+        <article class="diary reveal">
+          <div class="diary__top">
+            <span class="diary__date">5 月 12 日</span>
+            <span class="diary__mood">😊</span>
+          </div>
+          <p class="diary__txt">今天在阳台上种了一颗小种子，我给它取名「小绿」。希望它快快长大，比我还高！</p>
+          <p class="diary__tag"># 种植物</p>
+        </article>
+        <article class="diary reveal">
+          <div class="diary__top">
+            <span class="diary__date">5 月 20 日</span>
+            <span class="diary__mood">🥰</span>
+          </div>
+          <p class="diary__txt">美术老师说我的画有进步，还把我的画贴在了墙上。我偷偷开心了一整天。</p>
+          <p class="diary__tag"># 画画</p>
+        </article>
+        <article class="diary reveal">
+          <div class="diary__top">
+            <span class="diary__date">6 月 1 日</span>
+            <span class="diary__mood">🎉</span>
+          </div>
+          <p class="diary__txt">儿童节！和好朋友一起去公园，吃了两个冰淇淋，还追了三只蝴蝶。</p>
+          <p class="diary__tag"># 儿童节</p>
+        </article>
+      </div>
+
+      <p class="diary__hint reveal">在 <code>index.html</code> 里找到 <code>小日记</code> 那一段，就能写下今天的心情啦 ✏️</p>
+    </div>
+  </section>
+
+  <!-- ===== 我的梦想 ===== -->
+  <section class="section" id="dream">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">My Dreams</p>
+        <h2 class="sec-head__title">我的小小梦想</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>⭐</em><span></span></div>
+      </header>
+
+      <ul class="dreams">
+        <li class="dream reveal"><span class="dream__ico">🖌️</span><div><b>办一场自己的画展</b><p>把所有画挂满一整面墙，请大家来看。</p></div></li>
+        <li class="dream reveal"><span class="dream__ico">🌸</span><div><b>种满一整个阳台的花</b><p>春天的时候，推开窗就是香香的。</p></div></li>
+        <li class="dream reveal"><span class="dream__ico">📕</span><div><b>写一本自己的小书</b><p>主角是一个会种花的女孩。</p></div></li>
+        <li class="dream reveal"><span class="dream__ico">🐰</span><div><b>养一只小兔子</b><p>名字已经想好了，就叫「棉花糖」。</p></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== 留言 ===== -->
+  <section class="section section--tint" id="message">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">Say Hello</p>
+        <h2 class="sec-head__title">给我留句话吧</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>💌</em><span></span></div>
+      </header>
+
+      <form class="msg reveal" id="msgForm" novalidate>
+        <div class="msg__row">
+          <input type="text" id="msgName" placeholder="你是谁呀？" autocomplete="name" maxlength="20">
+        </div>
+        <div class="msg__row">
+          <textarea id="msgText" rows="4" placeholder="想对我说点什么～" maxlength="200"></textarea>
+        </div>
+        <button class="btn btn--primary msg__btn" type="submit">把话放进花园 💐</button>
+        <p class="msg__tip">留言会保存在你的浏览器里，只有你能看到 🌷</p>
+      </form>
+
+      <ul class="msg__list" id="msgList"></ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🌸 曦曦的空间</p>
+    <p class="footer__line">用喜欢的事情，把每一天都填得满满的。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 亲手种下的小花园</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
