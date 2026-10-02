@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>认识钟表 ⏰ 曦曦的游戏屋</title>
+<meta name="description" content="屏幕上写着 7:15，四个钟面哪一个是对的？看数字找钟表，练出认钟表的好眼力！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* 认识钟表专属 */
+.ck-goal{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+  margin:2px 0 18px;padding:16px 12px;border-radius:16px;
+  background:linear-gradient(135deg,#eafaf1,#fff7e0);border:1.5px dashed #7ed6a8;}
+.ck-time{font-size:38px;font-weight:900;color:#2f9d6d;letter-spacing:2px;}
+.ck-word{font-size:16.5px;color:#4a5b52;font-weight:700;}
+.ck-opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.ck-opt{width:118px;height:118px;padding:6px;border-radius:50%;border:2.5px solid #bfe9d3;
+  background:#fff;cursor:pointer;transition:transform .15s ease;}
+.ck-opt:hover{transform:translateY(-3px);border-color:#7ed6a8;}
+.ck-opt:active{transform:scale(.95);}
+.ck-opt svg{width:100%;height:100%;display:block;}
+.ck-opt.is-ok{border-color:#5cb98c;background:#eafaf1;box-shadow:0 0 0 3px #bfe9d3;}
+.ck-opt.is-bad{border-color:#f0a2a2;background:#fff2f2;}
+.ck-opt.is-dim{opacity:.4;}
+.ck-fb{text-align:center;font-size:15px;font-weight:700;color:#4a5b52;min-height:24px;margin:12px 0 4px;}
+.ck-next{display:block;margin:0 auto 6px;}
+.ck-next.is-hide{visibility:hidden;}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+      </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">⏰ Game · 眼力认钟</p>
+      <h1 class="ghero__title reveal">认识钟表</h1>
+      <p class="ghero__sub reveal">屏幕上写着一个时间，四个钟面里<strong>哪一个是对的</strong>？看仔细哦——时针和分针可别认反啦！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-stats" style="justify-content:center;">
+          <span class="sg-stat">📋 第 <b id="ckNo">—</b> / 10 题</span>
+          <span class="sg-stat">⭐ 答对 <b id="ckScore">0</b></span>
+          <span class="sg-stat">🌟 最佳 <b id="ckBest">—</b></span>
+        </div>
+
+        <div class="ck-goal" id="ckGoal" aria-live="polite">
+          <p class="sg-placeholder">点下面的按钮开始吧～ ⏰</p>
+        </div>
+
+        <div class="ck-opts" id="ckOpts"></div>
+        <p class="ck-fb" id="ckFb"></p>
+        <button class="btn btn--primary ck-next" id="ckNext" type="button">开始 ▶</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>⏰</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>上面会出现一个数字时间，比如 <b>7:15</b>。</li>
+        <li>下面有四个钟面，<strong>只有一个</strong>显示的是这个时间。</li>
+        <li><b>短粗的针是时针</b>（指到几就是几点），<b>细长的针是分针</b>（走一格是 5 分钟）。</li>
+        <li>点选对的钟面，答完告诉你为什么！</li>
+        <li>一轮 <b>10 题</b>，<b>最佳成绩</b>自动保存，随时来打破纪录！</li>
+        <li class="rules-tip">💡 小秘诀：先看分针——指着 3 就是 15 分，指着 6 就是半点；再看时针在两个数字<b>之间</b>靠近谁。先分针后时针，认钟不出错！</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-clock.js"></script>
+</body>
+</html>
