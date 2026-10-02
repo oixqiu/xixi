@@ -55,13 +55,34 @@
     var k = rnd(12, 120);
     return fracHtml(s[0] * k, s[1] * k);
   }
-  // 相近型目标：v 附近的大分数（如 1/2 → 499/1000）
+  // 相近型目标：v 附近的大分数（如 1/2 → 499/1000），分母可以很大
   function nearFrac(v) {
-    var den = rnd(150, 999);
+    var den = Math.random() < 0.3 ? rnd(2000, 9999) : rnd(150, 2000);
     var num = Math.round(v * den) + rnd(-2, 2);
     if (num < 1) num = 1;
     if (num > den - 1) num = den - 1;
     return { n: num, d: den, diff: Math.abs(num / den - v) };
+  }
+  // 不规则分数干扰项：乱分母（如 7/23）或超大分母（如 449/10000），
+  // 值与 v 差 ≥ FAR 且与 usedVals 里已有的值都差 ≥ FAR
+  function oddFrac(v, minDen, maxDen, usedVals) {
+    var guard = 0;
+    while (guard < 200) {
+      guard++;
+      var den = rnd(minDen, maxDen);
+      var num = rnd(1, den - 1);
+      var val = num / den;
+      if (val < 0.04 || val > 0.96) continue;
+      if (Math.abs(val - v) < FAR) continue;
+      var dup = false;
+      for (var i = 0; i < usedVals.length; i++) {
+        if (Math.abs(usedVals[i] - val) < FAR) { dup = true; break; }
+      }
+      if (dup) continue;
+      usedVals.push(val);
+      return { n: num, d: den, v: val };
+    }
+    return null;
   }
 
   /* ---------- 出题 ---------- */
@@ -104,32 +125,62 @@
       cur = { v: v, type: 'near', goalHtml: goalHtml, ansHtml: ansHtml2, rel: '≈' };
     }
 
-    // 干扰项：从比例库挑值差 ≥ FAR 的，随机以放大分数/百分数呈现
-    var pools = [];
+    // 干扰项：不规则大数字分数（7/23、4/9、449/10000 这类）+ 百分数混搭，
+    // 值与目标差 ≥ FAR，且互相差 ≥ FAR，保证正确项唯一
+    var usedVals = [v];
+    var poolVals = [];
     for (var i = 0; i < SEEDS.length; i++) {
-      if (SEEDS[i] === seed) continue;
-      if (Math.abs(fracVal(SEEDS[i]) - v) < FAR) continue;
-      var dup = false;
-      for (var j = 0; j < pools.length; j++) {
-        if (Math.abs(fracVal(SEEDS[i]) - fracVal(SEEDS[j])) < FAR) { dup = true; break; }
-      }
-      if (!dup) pools.push(SEEDS[i]);
+      if (SEEDS[i] !== seed && Math.abs(fracVal(SEEDS[i]) - v) >= FAR) poolVals.push(fracVal(SEEDS[i]));
     }
-    // 洗牌后取 3 个
-    for (var k = pools.length - 1; k > 0; k--) {
-      var m = Math.floor(Math.random() * (k + 1));
-      var t = pools[k]; pools[k] = pools[m]; pools[m] = t;
-    }
-    pools = pools.slice(0, 3);
 
     cur.opts = [];
-    for (var p = 0; p < pools.length; p++) {
-      var pv = fracVal(pools[p]);
+    // 1~2 个不规则小分母（如 7/23、4/9）
+    var wantOdd1 = rnd(1, 2);
+    for (var o1 = 0; o1 < wantOdd1; o1++) {
+      var f1 = oddFrac(v, 9, 99, usedVals);
+      if (f1) cur.opts.push({ v: f1.v, html: fracHtml(f1.n, f1.d) });
+    }
+    // 1 个超大分母（如 449/10000）
+    var f2 = oddFrac(v, 800, 9999, usedVals);
+    if (f2) cur.opts.push({ v: f2.v, html: fracHtml(f2.n, f2.d) });
+    // 剩下的用百分数或比例库放大分数补齐
+    var guard2 = 0;
+    while (cur.opts.length < 3 && guard2 < 100) {
+      guard2++;
+      var cand = poolVals.length ? poolVals[rnd(0, poolVals.length - 1)] : null;
+      if (cand === null) break;
+      var dup2 = false;
+      for (var j2 = 0; j2 < usedVals.length; j2++) {
+        if (Math.abs(usedVals[j2] - cand) < FAR) { dup2 = true; break; }
+      }
+      if (dup2) continue;
+      // 找到对应的 seed
+      var sd = null;
+      for (var s2 = 0; s2 < SEEDS.length; s2++) {
+        if (Math.abs(fracVal(SEEDS[s2]) - cand) < 1e-9) { sd = SEEDS[s2]; break; }
+      }
+      if (!sd) continue;
+      usedVals.push(cand);
       cur.opts.push({
-        v: pv,
-        html: (pctOk(pv) && Math.random() < 0.35) ? pctHtml(Math.round(pv * 100)) : seedHtml(pools[p], true)
+        v: cand,
+        html: (pctOk(cand) && Math.random() < 0.5) ? pctHtml(Math.round(cand * 100)) : seedHtml(sd, true)
       });
     }
+    // 极端情况兜底：随机百分数（值差 ≥ FAR）
+    guard2 = 0;
+    while (cur.opts.length < 3 && guard2 < 300) {
+      guard2++;
+      var pv2 = rnd(3, 97);
+      if (Math.abs(pv2 / 100 - v) < FAR) continue;
+      var dup3 = false;
+      for (var j3 = 0; j3 < usedVals.length; j3++) {
+        if (Math.abs(usedVals[j3] - pv2 / 100) < FAR) { dup3 = true; break; }
+      }
+      if (dup3) continue;
+      usedVals.push(pv2 / 100);
+      cur.opts.push({ v: pv2 / 100, html: pctHtml(pv2) });
+    }
+
     cur.opts.push({ v: cur.v, html: cur.ansHtml, ans: true });
     for (var x = cur.opts.length - 1; x > 0; x--) {
       var y = Math.floor(Math.random() * (x + 1));
