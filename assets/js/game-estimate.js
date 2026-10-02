@@ -22,9 +22,8 @@
   var streakEl   = document.getElementById('esStreak');
   var bestEl     = document.getElementById('esBest');
 
-  var diffBtns = Array.prototype.slice.call(document.querySelectorAll('.sg-size[data-d]'));
+  var diffBtns = [];
 
-  var esD = 2;        // 真实答案的位数（难度）
   var qIndex = 0;     // 第几题（0 起）
   var score = 0;
   var streak = 0;
@@ -35,18 +34,19 @@
   function digitsOf(n) { return String(n).length; }
   function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
-  function bestKey() { return 'd' + esD; }
   function loadBest() {
-    var all = store.get(ES_KEY) || {};
-    return typeof all[bestKey()] === 'number' ? all[bestKey()] : null;
+    var v = store.get(ES_KEY);
+    if (typeof v === 'number') return v;              // 新格式：单值
+    if (v && typeof v === 'object') {                 // 旧格式（按难度存）：取最大值迁移
+      var m = null, k;
+      for (k in v) { if (typeof v[k] === 'number' && (m === null || v[k] > m)) m = v[k]; }
+      if (m !== null) { store.set(ES_KEY, m); return m; }
+    }
+    return null;
   }
   function saveBest(s) {
-    var all = store.get(ES_KEY) || {};
-    if (typeof all[bestKey()] !== 'number' || s > all[bestKey()]) {
-      all[bestKey()] = s;
-      store.set(ES_KEY, all);
-      return true;
-    }
+    var b = loadBest();
+    if (b === null || s > b) { store.set(ES_KEY, s); return true; }
     return false;
   }
   function showBest() {
@@ -68,7 +68,7 @@
     return parts;
   }
 
-  /* 生成一道题：总和 S 为 d 位数 */
+  /* 生成一道题：位数随机混合（2~5），不告诉玩家 */
   function makeQuestion(d) {
     var lo = Math.pow(10, d - 1), hi = Math.pow(10, d) - 1;
     // 离边界留 12% 余量，避免「隔壁位数」的选项比正确选项更近
@@ -115,7 +115,7 @@
   }
 
   function renderQuestion() {
-    cur = makeQuestion(esD);
+    cur = makeQuestion(rnd(2, 5));  // 位数随机混合，让孩子自己判断
     asking = true;
 
     formulaEl.textContent = cur.addends.join(' + ') + ' = ?';
@@ -201,14 +201,6 @@
     renderQuestion();
   }
 
-  diffBtns.forEach(function (b) {
-    b.addEventListener('click', function () {
-      esD = parseInt(b.getAttribute('data-d'), 10) || 2;
-      diffBtns.forEach(function (x) { x.classList.toggle('is-on', x === b); });
-      say('难度换成「' + DIGIT_CN[esD] + '数」啦，出发！🎯');
-      startRound();
-    });
-  });
   nextBtn.addEventListener('click', function () {
     if (qIndex === -1) startRound();
     else next();

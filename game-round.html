@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>凑整口算 ➕ 曦曦的游戏屋</title>
+<meta name="description" content="加减混合口算练习：先自己算，再看一步步的「凑整」小妙招演示，把数凑成整十再算，又快又准！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* ===== 凑整口算 专属样式 ===== */
+.rd-formula{
+  font-size:34px;font-weight:900;color:var(--leaf-deep);letter-spacing:.02em;
+  text-align:center;line-height:1.45;word-break:break-all;
+  background:linear-gradient(135deg,#f2fbf5,#e9f7ee);
+  border:1.5px solid var(--line);border-radius:var(--r-md);
+  padding:22px 14px;margin:0 0 14px;
+}
+.rd-steps{
+  display:none;margin:0 0 6px;
+  background:#fff;border:1.5px dashed var(--mint);border-radius:var(--r-md);
+  padding:14px 16px;
+}
+.rd-steps.is-show{display:block;animation:pop .4s var(--ease);}
+.rd-step{
+  font-size:20px;font-weight:800;color:var(--ink-2);
+  padding:8px 0;line-height:1.5;word-break:break-all;
+  font-family:ui-monospace,Menlo,Consolas,'Courier New',monospace;
+  border-bottom:1px dashed var(--line);
+}
+.rd-step:last-child{border-bottom:0;}
+.rd-final{
+  font-size:27px;font-weight:900;color:var(--leaf-deep);
+  padding:10px 0 2px;text-align:center;
+  font-family:ui-monospace,Menlo,Consolas,'Courier New',monospace;
+}
+@media (max-width:560px){
+  .rd-formula{font-size:26px;padding:16px 10px;}
+  .rd-step{font-size:18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🧮 Game · 口算小妙招</p>
+      <h1 class="ghero__title reveal">凑整口算</h1>
+      <p class="ghero__sub reveal">先自己口算，再看<strong>一步步的「凑整」演示</strong>——把数凑成整十再算，又快又准！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-controls">
+          <div class="sg-sizes" role="group" aria-label="选择难度">
+            <button class="sg-size is-on" data-lv="1" type="button">⭐ 简单<br><small>3 个数</small></button>
+            <button class="sg-size" data-lv="2" type="button">⭐⭐ 普通<br><small>4 个数</small></button>
+            <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 困难<br><small>5 个数</small></button>
+          </div>
+          <div class="sg-stats">
+            <span class="sg-stat">⏱️ <b id="rdClock">00:00.0</b></span>
+            <span class="sg-stat">💪 已练 <b id="rdCount">0</b> 题</span>
+          </div>
+          <div class="gq-row">
+            <button class="btn btn--primary" id="rdAns" type="button">查看答案 🧮</button>
+            <button class="btn" id="rdNext" type="button">下一题 ➡️</button>
+          </div>
+        </div>
+
+        <p class="rd-formula" id="rdFormula">准备好了吗？</p>
+
+        <div class="rd-steps" id="rdSteps"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🧮</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选难度：<b>⭐ 3 个数</b>、<b>⭐⭐ 4 个数</b>、<b>⭐⭐⭐ 5 个数</b>，数字越来越大。</li>
+        <li>出题时顶部<b>秒表</b>就开始走，算式会用大字展示出来。</li>
+        <li>先<b>自己口算</b>，试试「凑整」：把数凑成整十再算，又快又准。</li>
+        <li>点「<b>查看答案 🧮</b>」，会一行一行展示<b>凑整的思考过程</b>，看看和你想的一样吗。</li>
+        <li>点「<b>下一题 ➡️</b>」继续练习，练过的题数会一直累计保存。</li>
+        <li class="rules-tip">💡 小秘诀：加法先凑整十（比如 62 + 8 = 70，再加剩下的 67）；减法先减整十、再减个位（比如 137 − 40 − 8），这样口算就不容易错啦～</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-round.js"></script>
+</body>
+</html>

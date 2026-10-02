@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24 点 🃏 曦曦的游戏屋</title>
+<meta name="description" content="出 4 张扑克牌，用加、减、乘、除把它们算成 24！心算小达人挑战赛，看看你最快几秒能凑出答案。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* ===== 24 点 专属样式 ===== */
+.pkr-hand{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
+  margin:6px 0 4px;
+}
+.pkr-card{
+  position:relative;background:#fff;border:1.5px solid var(--line);
+  border-radius:14px;box-shadow:var(--sh-sm);
+  padding:10px 4px 12px;text-align:center;min-height:108px;
+}
+.pkr-corner{
+  position:absolute;left:8px;top:6px;
+  font-size:13px;font-weight:800;line-height:1.12;
+}
+.pkr-num{
+  display:block;font-size:44px;font-weight:900;line-height:1;
+  padding-top:22px;
+}
+.pkr-suit{display:block;font-size:20px;line-height:1;margin-top:3px;}
+.pkr-red{color:#d8435e;}
+.pkr-black{color:#39413d;}
+.pkr-card.is-dealt{animation:cellPop .4s var(--ease);}
+.t24-tip{
+  text-align:center;font-size:14.5px;font-weight:700;color:var(--ink-3);
+  margin:10px 0 0;
+}
+.t24-answer{display:none;margin-top:16px;}
+.t24-answer.is-show{display:block;animation:pop .45s var(--ease);}
+.t24-sol{
+  margin:0;font-size:27px;font-weight:900;color:var(--leaf-deep);
+  text-align:center;line-height:1.4;word-break:break-all;
+  background:linear-gradient(135deg,#f2fbf5,#e9f7ee);
+  border:1.5px solid var(--line);border-radius:var(--r-md);
+  padding:16px 12px;
+}
+@media (max-width:560px){
+  .pkr-hand{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .pkr-card{min-height:96px;padding:8px 4px 10px;}
+  .pkr-num{font-size:38px;padding-top:18px;}
+  .t24-sol{font-size:22px;}
+}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🃏 Game · 心算挑战</p>
+      <h1 class="ghero__title reveal">24 点</h1>
+      <p class="ghero__sub reveal">出 4 张扑克牌，用<strong>加、减、乘、除</strong>把它们算成 24，看谁心算最快！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-controls">
+          <div class="sg-stats">
+            <span class="sg-stat">⏱️ <b id="t24Clock">00:00.0</b></span>
+            <span class="sg-stat">✅ 已完成 <b id="t24Done">0</b> 题</span>
+            <span class="sg-stat">🏆 最快 <b id="t24Best">—</b></span>
+          </div>
+          <div class="gq-row">
+            <button class="btn btn--primary" id="t24Deal" type="button">发牌 🃏</button>
+            <button class="btn" id="t24Ans" type="button">查看答案 💡</button>
+            <button class="btn" id="t24Next" type="button">再来一组 🃏</button>
+          </div>
+        </div>
+
+        <div class="pkr-hand" id="t24Cards"></div>
+
+        <p class="t24-tip">心算一下：怎样加减乘除凑出 24？每张牌都要用上哦～</p>
+
+        <div class="t24-answer" id="t24Answer">
+          <p class="t24-sol" id="t24Sol"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🃏</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>点「<b>发牌 🃏</b>」，会出现 4 张 1~10 的扑克牌，顶部秒表同时开始计时。</li>
+        <li>用<b>加、减、乘、除</b>（可以加括号），把 4 张牌各用一次，算出 <b>24</b>。</li>
+        <li>每一题都<b>保证有答案</b>，放心大胆地想！</li>
+        <li>想不出来就点「<b>查看答案 💡</b>」，会展示一种可行算式，秒表也会停下。</li>
+        <li>点「<b>再来一组 🃏</b>」继续挑战，秒表重新开始。</li>
+        <li>每看一次答案就算完成一题，<b>60 秒内</b>完成的用时会记入「<b>🏆 最快</b>」纪录，完成的题数也会一直累计。</li>
+        <li class="rules-tip">💡 小秘诀：先找能凑成整十的组合，比如 3 和 7、4 和 6；再想想 24 = 3 × 8、24 = 4 × 6、24 = 12 + 12，往这些方向凑就容易啦！</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-24.js"></script>
+</body>
+</html>

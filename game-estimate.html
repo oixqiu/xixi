@@ -22,13 +22,8 @@
     </a>
     <nav class="nav__links" id="navLinks">
       <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
-      <a href="game-schulte.html">🧠 舒尔特方格</a>
-      <a href="game-rps.html">✌️ 剪子包袱锤</a>
-      <a href="game-guess.html">🔢 猜数字</a>
-      <a href="game-mole.html">🔨 打地鼠</a>
-      <a href="game-eggy.html">🥚 彩虹蛋蛋</a>
       <a href="index.html" class="nav__cta">回首页</a>
-    </nav>
+      </nav>
     <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -50,18 +45,13 @@
       <div class="game-card reveal">
 
         <div class="sg-controls">
-          <div class="sg-sizes" role="group" aria-label="选择难度">
-            <button class="sg-size is-on" data-d="2" type="button">⭐<br><small>答案是两位数</small></button>
-            <button class="sg-size" data-d="3" type="button">⭐⭐<br><small>答案是三位数</small></button>
-            <button class="sg-size" data-d="4" type="button">⭐⭐⭐<br><small>答案是四位数</small></button>
-            <button class="sg-size" data-d="5" type="button">⭐⭐⭐⭐<br><small>答案是五位数</small></button>
-          </div>
           <div class="sg-stats">
             <span class="sg-stat">📋 第 <b id="esNo">1</b>/10 题</span>
             <span class="sg-stat">🌟 得分 <b id="esScore">0</b></span>
             <span class="sg-stat">🔥 连对 <b id="esStreak">0</b></span>
             <span class="sg-stat">🏆 最佳 <b id="esBest">—</b></span>
           </div>
+          <p class="es-hint">🎲 难度已<b>全部混合</b>：答案可能是两位、三位、四位或五位数——没人告诉你，<b>自己判断</b>！</p>
         </div>
 
         <div class="es-question">

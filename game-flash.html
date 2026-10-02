@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字快闪 ⚡ 曦曦的游戏屋</title>
+<meta name="description" content="数字一个一个闪电般闪过，看到包含目标数字的就立刻拍下大按钮！拍对加分、误按扣分，三档节奏挑战你的眼力和手速～">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* ============ 数字快闪 专属样式 ============ */
+.fl-goal{
+  text-align:center;margin:0 0 14px;
+  font-size:17px;font-weight:800;color:var(--ink-2);
+}
+.fl-goal b{font-size:32px;color:#e0567f;margin:0 5px;line-height:1.2;}
+.fl-stage{
+  display:grid;place-items:center;text-align:center;overflow:hidden;
+  min-height:170px;padding:12px;margin:0 0 16px;
+  background:#fff;border:2px solid var(--line);border-radius:var(--r-md);
+  transition:background .15s,border-color .15s;
+}
+.fl-stage.is-hit{background:var(--mint-soft);border-color:var(--mint);}
+.fl-stage.is-bad{background:var(--pink-soft);border-color:var(--pink);}
+.fl-num{
+  font-size:64px;font-size:clamp(64px,17vw,100px);
+  font-weight:900;color:var(--leaf-deep);line-height:1.1;
+  letter-spacing:.04em;word-break:break-all;
+}
+.fl-blank{
+  font-size:64px;font-size:clamp(64px,17vw,100px);
+  font-weight:900;color:var(--line);line-height:1.1;letter-spacing:.15em;
+}
+.fl-tap{
+  display:block;margin:0 auto;font-family:inherit;cursor:pointer;
+  width:100%;max-width:300px;padding:18px 16px;
+  font-size:26px;font-weight:900;color:#fff;letter-spacing:.08em;
+  background:linear-gradient(135deg,#ff9ec4,#ffb8cf);
+  border:0;border-radius:999px;
+  box-shadow:0 10px 22px rgba(255,148,187,.4);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:transform .12s var(--ease),box-shadow .2s,opacity .2s,background .2s;
+}
+.fl-tap:active{transform:scale(.95);}
+.fl-tap.is-locked{opacity:.45;box-shadow:none;cursor:default;}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">⚡ Game · 眼疾手快</p>
+      <h1 class="ghero__title reveal">数字快闪</h1>
+      <p class="ghero__sub reveal">数字会一个一个「唰」地闪过！看到<strong>包含目标数字</strong>的数，马上拍下大按钮——手慢就溜走啦～⚡🐹</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="gq-controls">
+          <div class="sg-sizes" role="group" aria-label="选择节奏">
+            <button class="sg-size is-on" data-sp="300-300" type="button">⭐ 慢慢来<br><small>0.3 秒</small></button>
+            <button class="sg-size" data-sp="200-200" type="button">⭐⭐ 标准<br><small>0.2 秒</small></button>
+            <button class="sg-size" data-sp="120-160" type="button">⭐⭐⭐ 神速<br><small>0.12 秒</small></button>
+          </div>
+          <p class="fl-goal">看到包含<b id="flGoalNum">?</b>的数，就拍按钮！👏</p>
+          <div class="sg-stats">
+            <span class="sg-stat">🏆 得分 <b id="flScore">0</b></span>
+            <span class="sg-stat">👏 拍对 <b id="flHit">0</b></span>
+            <span class="sg-stat">❌ 误按 <b id="flWrong">0</b></span>
+            <span class="sg-stat">😢 漏拍 <b id="flMiss">0</b></span>
+            <span class="sg-stat">🌟 最佳 <b id="flBest">—</b></span>
+          </div>
+          <div class="gq-row">
+            <button class="btn btn--primary" id="flStart" type="button">开始 ⚡</button>
+          </div>
+        </div>
+
+        <div class="fl-stage" id="flStage" style="margin-top:20px;">
+          <span class="fl-blank" id="flDisp">· · ·</span>
+        </div>
+
+        <button class="fl-tap" id="flTap" type="button">👏 拍！</button>
+
+        <p class="sg-result" id="flResult">点「开始 ⚡」，20 个数字马上出发！</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>⚡</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选节奏：<b>⭐ 慢慢来</b>、<b>⭐⭐ 标准</b>、<b>⭐⭐⭐ 神速</b>。</li>
+        <li>记住本局的<b>目标数字</b>，比如「3」，就显示在按钮上面。</li>
+        <li>点「<b>开始 ⚡</b>」，20 个数字会一个一个闪现，闪一下又消失。</li>
+        <li>看到<b>包含目标数字</b>的数出现的瞬间，马上拍「<b>👏 拍！</b>」大按钮！</li>
+        <li>不含目标的数出现时拍了、或者空白时乱拍，都算<b>误按 ❌</b>（按钮会变灰一下下）。</li>
+        <li>含目标的数闪过去没拍到，算<b>漏拍 😢</b>。得分 = <b>拍对 − 误按</b>（最低 0 分），每个节奏的最佳分都会保存。</li>
+        <li class="rules-tip">💡 小秘诀：手指悬在按钮上方别放开，眼睛盯住屏幕中间——看到目标就「啪」地拍下去！空白期千万忍住别拍哦～🌸</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-flash.js"></script>
+</body>
+</html>

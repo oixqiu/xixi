@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>购物找零 🛒 曦曦的游戏屋</title>
+<meta name="description" content="帮曦曦买东西算找零：先算一共花了多少钱，再从付出的钱里减一减，看看该找回多少！三种难度越练越厉害。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* ===== 购物找零 专属样式 ===== */
+.ch-goods{
+  display:flex;flex-wrap:wrap;gap:12px;justify-content:center;
+  margin:6px 0 0;padding:0;list-style:none;
+}
+.ch-goods li{width:100%;max-width:100%;}
+.ch-item{
+  box-sizing:border-box;height:100%;
+  background:#f8fdf9;border:1.5px solid var(--line);border-radius:var(--r-md);
+  padding:16px 10px 13px;text-align:center;box-shadow:var(--sh-sm);
+}
+.ch-item__emoji{font-size:48px;line-height:1.15;}
+.ch-item__name{font-size:15px;font-weight:800;color:var(--ink-2);margin-top:6px;}
+.ch-item__price{font-size:19px;font-weight:900;color:var(--leaf-deep);margin-top:2px;}
+.ch-ask{
+  text-align:center;margin:18px 0 0;min-height:30px;
+  font-size:clamp(18px,3.6vw,22px);font-weight:900;color:var(--ink-2);
+}
+.ch-pay{
+  text-align:center;margin:8px 0 0;
+  font-size:15px;font-weight:700;color:var(--ink-3);
+}
+.ch-steps{margin-top:14px;}
+.ch-step{
+  background:#f8fdf9;border:1.5px dashed var(--mint);border-radius:12px;
+  padding:11px 12px;margin-top:8px;text-align:center;
+  font-size:15.5px;font-weight:800;color:var(--ink-2);line-height:1.55;
+  animation:pop .4s var(--ease);
+}
+.ch-result{
+  text-align:center;margin:14px 0 0;min-height:34px;
+  font-size:27px;font-weight:900;color:var(--leaf-deep);
+}
+.ch-result.is-show{animation:pop .5s var(--ease);}
+.ch-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px;}
+.ch-actions .btn[hidden]{display:none;}
+@media (min-width:561px){
+  .ch-goods li{width:158px;max-width:158px;}
+}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🛒 Game · 小小收银员</p>
+      <h1 class="ghero__title reveal">购物找零</h1>
+      <p class="ghero__sub reveal">买东西啦！先算一共花了多少钱，再想想<strong>「该找回多少」</strong>，你就是最棒的小小收银员！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-controls">
+          <div class="sg-sizes" role="group" aria-label="选择难度">
+            <button class="sg-size is-on" data-lv="1" type="button">⭐ 简单<br><small>买 1 件</small></button>
+            <button class="sg-size" data-lv="2" type="button">⭐⭐ 普通<br><small>买 2 件</small></button>
+            <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 困难<br><small>买 3 件</small></button>
+          </div>
+          <div class="sg-stats">
+            <span class="sg-stat">⏱ 用时 <b id="chTimer">00:00.0</b></span>
+            <span class="sg-stat">💪 已练 <b id="chDrill">0</b> 题</span>
+          </div>
+        </div>
+
+        <ul class="ch-goods" id="chGoods"></ul>
+
+        <p class="ch-ask" id="chAsk">需要找回多少钱？</p>
+        <p class="ch-pay" id="chPay"></p>
+
+        <div class="ch-steps" id="chSteps"></div>
+        <p class="ch-result" id="chResult"></p>
+
+        <div class="ch-actions">
+          <button class="btn btn--primary" id="chShow" type="button">查看答案 💡</button>
+          <button class="btn btn--ghost" id="chNext" type="button" hidden>下一题 🛒</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🛒</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选难度：<b>简单买 1 件</b>、<b>普通买 2 件</b>、<b>困难买 3 件</b>。</li>
+        <li>看看买了什么，每件商品上都有价格，比如「5 元 8 角」。</li>
+        <li>先在心里<b>把几件商品的价格加起来</b>，算出一共花多少钱。</li>
+        <li>曦曦付出了一张钱（比如一张 50 元），想想<b>「需要找回多少钱？」</b></li>
+        <li>想好后点「<b>查看答案 💡</b>」，答案会一步一步教你怎么算：先加总价，再先减整元、再减角。</li>
+        <li>点「<b>下一题 🛒</b>」继续练！右上的计时秒表会看看你这次想了多久，「已练」会记下你练过的总题数。</li>
+        <li class="rules-tip">💡 小秘诀：找零可以先减整元、再减角。比如 50 元 − 18 元 3 角：先算 50 − 18 = 32 元，再减 3 角，就是 31 元 7 角！</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-change.js"></script>
+</body>
+</html>

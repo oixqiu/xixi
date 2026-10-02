@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字消除 🔍 曦曦的游戏屋</title>
+<meta name="description" content="记住目标数字，在 36 个格子里把所有包含它的数统统划掉！两位数、三位数、四位数三档难度，看谁眼神好、手更快～">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* ============ 数字消除 专属样式 ============ */
+.cc-target{
+  text-align:center;
+  background:linear-gradient(135deg,#fff5f9,#ffe3ed);
+  border:2px dashed var(--pink);
+  border-radius:var(--r-md);
+  padding:12px 12px 16px;margin:0 0 18px;
+  font-size:16px;font-weight:800;color:var(--ink-2);
+}
+.cc-target b{
+  font-size:40px;color:#e0567f;letter-spacing:.06em;
+  margin:0 6px;line-height:1.2;
+}
+.cc-board{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:8px;
+  margin:0 auto;width:100%;max-width:420px;
+}
+.cc-cell{
+  position:relative;display:grid;place-items:center;padding:0;
+  border:1.5px solid var(--line);border-radius:12px;
+  background:#fff;box-shadow:var(--sh-sm);
+  font-family:inherit;font-weight:800;color:var(--leaf-deep);
+  font-size:15px;font-size:clamp(13px,3.6vw,21px);
+  cursor:pointer;overflow:hidden;
+  transition:background .25s,color .25s,opacity .25s,
+             transform .18s var(--ease),box-shadow .18s var(--ease);
+}
+.cc-cell:hover{transform:translateY(-2px);border-color:var(--mint);box-shadow:var(--sh-md);}
+.cc-cell:active{transform:scale(.93);}
+.cc-cell.is-found{
+  background:#eef7f1;border-color:var(--mint-soft);
+  color:rgba(93,125,107,.45);opacity:.62;cursor:default;
+  text-decoration:line-through;
+}
+.cc-cell.is-found::after{
+  content:'✓';position:absolute;right:3px;top:1px;
+  font-size:12px;font-weight:900;color:var(--leaf);
+  text-decoration:none;
+}
+.cc-cell.is-wrong{
+  background:var(--pink-soft);border-color:var(--pink);color:#c76287;
+  animation:cellShake .4s var(--ease);
+}
+.cc-board.is-done .cc-cell{cursor:default;}
+.cc-board.is-done .cc-cell:hover{transform:none;box-shadow:var(--sh-sm);}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🔍 Game · 火眼金睛</p>
+      <h1 class="ghero__title reveal">数字消除</h1>
+      <p class="ghero__sub reveal">目标数字就藏在格子堆里！把它们<strong>全部找出来划掉</strong>，看谁的眼神最亮、速度最快～🐹✨</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="gq-controls">
+          <div class="sg-sizes" role="group" aria-label="选择难度">
+            <button class="sg-size is-on" data-lv="1" type="button">⭐ 简单<br><small>两位数</small></button>
+            <button class="sg-size" data-lv="2" type="button">⭐⭐ 普通<br><small>三位数</small></button>
+            <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 困难<br><small>四位数</small></button>
+          </div>
+          <p class="cc-target">🔍 找出所有包含<b id="ccTargetNum">?</b>的数，点它划掉！</p>
+          <div class="sg-stats">
+            <span class="sg-stat">✂️ 已划 <b id="ccDone">0 / 0</b></span>
+            <span class="sg-stat">❌ 错误 <b id="ccErr">0</b></span>
+            <span class="sg-stat">⏱ 用时 <b id="ccTime">00:00.0</b></span>
+            <span class="sg-stat">🌟 最佳 <b id="ccBest">—</b></span>
+          </div>
+          <div class="gq-row">
+            <button class="btn btn--primary" id="ccStart" type="button">开始挑战 🔍</button>
+            <button class="btn btn--ghost" id="ccNew" type="button">换一批 🔄</button>
+          </div>
+        </div>
+
+        <div class="cc-board" id="ccBoard" style="margin-top:20px;"></div>
+
+        <p class="sg-result" id="ccResult">点「开始挑战」就计时咯，先偷偷记一记目标藏哪儿～</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🔍</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选难度：<b>⭐ 两位数</b>、<b>⭐⭐ 三位数</b>、<b>⭐⭐⭐ 四位数</b>。</li>
+        <li>看清最上方粉色框里的<b>目标数字</b>，比如「37」。</li>
+        <li>点「<b>开始挑战 🔍</b>」，计时马上开始！开始前可以先偷偷记位置哦。</li>
+        <li>在 36 个格子里，把<b>所有包含目标数字的数</b>一个一个点掉，划掉时会打上小对勾 ✓。</li>
+        <li>点错了格子会<b>抖一抖</b>，并记一次 ❌——每个错误要加 <b>3 秒罚时</b>！</li>
+        <li>全部划掉就通关！<b>用时 + 罚时</b>就是成绩，越短越厉害，每个难度的最佳成绩都会保存。</li>
+        <li class="rules-tip">💡 小秘诀：先快速扫一遍每个数的<b>开头和结尾</b>，目标数字最喜欢藏在角落里啦～也可以先数一数一共有几个目标，划完正好对上！🌸</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-cancel.js"></script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>古诗填字 📜 曦曦的游戏屋</title>
+<meta name="description" content="古诗名句先闪现一下，再挖掉两个字，你能凭记忆把空填上吗？一轮 8 句，全部来自小学课本，比比谁记得牢！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* ===== 古诗填字 专属样式 ===== */
+.pm-flash{
+  min-height:70px;display:grid;place-items:center;
+  font-size:clamp(22px,5.4vw,30px);font-weight:900;color:var(--leaf-deep);
+  letter-spacing:.05em;text-align:center;line-height:1.5;
+}
+.pm-flash.is-on{animation:pop .45s var(--ease);}
+.pm-line{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+  gap:3px 2px;min-height:56px;margin-top:6px;
+  font-size:clamp(22px,5.2vw,28px);font-weight:800;color:var(--ink-2);line-height:1.55;
+}
+.pm-ch{display:inline-block;width:1.32em;text-align:center;}
+.pm-ch--p{width:.7em;}
+.pm-blank{
+  display:inline-block;width:1.5em;box-sizing:border-box;
+  border-bottom:3px solid var(--pink);color:var(--leaf-deep);
+  text-align:center;font-weight:900;border-radius:6px 6px 0 0;
+}
+.pm-blank.is-cur{border-bottom-color:var(--mint);background:#eafaf1;}
+.pm-blank.is-fill{animation:cellPop .35s var(--ease);}
+.pm-opts{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
+  max-width:340px;margin:20px auto 0;
+}
+.pm-opt{
+  font-family:inherit;cursor:pointer;
+  font-size:26px;font-weight:900;color:var(--leaf-deep);
+  min-height:56px;padding:10px 4px;
+  background:#fff;border:2px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--sh-sm);
+  transition:transform .16s var(--ease),border-color .2s,background .3s;
+}
+.pm-opt:hover:not(:disabled){transform:translateY(-3px);border-color:var(--mint);box-shadow:var(--sh-md);}
+.pm-opt:active:not(:disabled){transform:scale(.94);}
+.pm-opt:disabled{cursor:default;opacity:.5;}
+.pm-opt.is-right{
+  background:linear-gradient(135deg,var(--mint),var(--mint-soft));
+  border-color:transparent;color:#fff;opacity:1;
+  animation:cellPop .35s var(--ease);
+}
+.pm-opt.is-wrong{
+  background:var(--pink-soft);border-color:var(--pink);color:#c76287;
+  animation:cellShake .4s var(--ease);
+}
+.pm-msg{
+  text-align:center;margin:18px 0 0;min-height:28px;
+  font-size:16px;font-weight:800;color:var(--ink-2);line-height:1.6;
+}
+.pm-msg.is-ok{color:var(--leaf-deep);}
+.pm-msg.is-no{color:#c76287;}
+.pm-actions{display:flex;justify-content:center;margin-top:14px;}
+.pm-actions .btn[hidden]{display:none;}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">📜 Game · 记忆小诗人</p>
+      <h1 class="ghero__title reveal">古诗填字</h1>
+      <p class="ghero__sub reveal">名句先<strong>闪现一下</strong>就藏起来，再挖掉两个字——凭记忆把空填上，你就是记忆小诗人！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-controls">
+          <div class="sg-sizes" role="group" aria-label="选择难度">
+            <button class="sg-size is-on" data-flash="1000" type="button">⭐ 简单<br><small>闪 1 秒</small></button>
+            <button class="sg-size" data-flash="500" type="button">⭐⭐ 挑战<br><small>闪 0.5 秒</small></button>
+          </div>
+          <div class="sg-stats">
+            <span class="sg-stat">📜 第 <b id="pmNo">1</b>/8 句</span>
+            <span class="sg-stat">得分 <b id="pmScore">0</b></span>
+            <span class="sg-stat">❌ 错误 <b id="pmMiss">0</b></span>
+            <span class="sg-stat">🌟 最佳 <b id="pmBest">—</b></span>
+          </div>
+        </div>
+
+        <p class="pm-flash" id="pmFlash"></p>
+        <div class="pm-line" id="pmLine"></div>
+
+        <div class="pm-opts" id="pmOpts"></div>
+        <p class="pm-msg" id="pmMsg">诗句马上闪现，看仔细咯～</p>
+
+        <div class="pm-actions">
+          <button class="btn btn--ghost" id="pmSkip" type="button">跳过这句 ⏭️</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>📜</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选难度：<b>简单闪 1 秒</b>、<b>挑战闪 0.5 秒</b>，闪得越快越考验记忆！</li>
+        <li>一句古诗名句会<b>先完整闪现一下</b>，然后藏起来——眼睛要快哦！</li>
+        <li>句子会再出现，但被<b>挖掉了 2 个字</b>（空空的方框）。</li>
+        <li>每个空有 <b>4 个候选字</b>，点你认为对的那个字填进去。</li>
+        <li>填对会自动跳下一个空；<b>两个空都对</b>，这句就算你赢，得 1 分！填错会抖一抖，还能继续选。</li>
+        <li>一轮共 <b>8 句</b>，结束后看得分，各难度的最佳分会保存下来。想不出可以点「<b>跳过这句 ⏭️</b>」（跳过不计分）。</li>
+        <li class="rules-tip">💡 小秘诀：闪现时别一个字一个字地记，把整句在心里「念一遍」，声音记忆比眼睛更牢！</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-poem.js"></script>
+</body>
+</html>

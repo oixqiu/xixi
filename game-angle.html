@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图形数角 📐 曦曦的游戏屋</title>
+<meta name="description" content="一个彩色多边形跳出来啦！数一数它有几个角、几条边，从四个选项里选对的那个。三角形、四边形一直到八边形，一轮 10 题练出图形小直觉！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* ===== 图形数角 专属样式 ===== */
+.ag-figure{
+  display:block;width:100%;max-width:340px;height:auto;
+  margin:0 auto 6px;
+}
+.ag-ask{
+  text-align:center;font-size:17px;font-weight:800;
+  color:var(--ink-2);margin:8px 0 2px;
+}
+.ag-hint{text-align:center;font-size:13.5px;color:var(--ink-3);margin:0 0 6px;}
+.ag-options{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;margin:16px 0 4px;
+}
+.ag-opt{
+  font-family:inherit;font-size:26px;font-weight:900;color:var(--leaf-deep);
+  background:#fff;border:2px solid var(--line);border-radius:var(--r-md);
+  padding:18px 10px;cursor:pointer;box-shadow:var(--sh-sm);
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease),border-color .2s,background .3s;
+  line-height:1.2;
+}
+.ag-opt:hover:not(:disabled){transform:translateY(-3px);border-color:var(--mint);box-shadow:var(--sh-md);}
+.ag-opt:active:not(:disabled){transform:scale(.96);}
+.ag-opt:disabled{cursor:default;opacity:.72;}
+.ag-opt.is-right{
+  background:linear-gradient(135deg,var(--mint),var(--mint-soft));
+  border-color:transparent;color:#fff;opacity:1;
+  animation:cellPop .35s var(--ease);
+}
+.ag-opt.is-picked-right{box-shadow:0 0 0 3px rgba(126,214,168,.45) inset, var(--sh-md);}
+.ag-opt.is-wrong{
+  background:var(--pink-soft);border-color:var(--pink);color:#c76287;
+  animation:cellShake .4s var(--ease);
+}
+.ag-feedback{
+  text-align:center;margin:16px 0 0;min-height:26px;
+  font-size:15.5px;font-weight:700;color:var(--ink-2);line-height:1.6;
+}
+.ag-feedback b{color:var(--leaf-deep);font-size:17px;}
+.ag-feedback.is-ok{color:#2e8f5e;}
+.ag-feedback.is-no{color:#c76287;}
+.ag-actions{text-align:center;margin-top:16px;}
+.ag-next[hidden]{display:none;}
+@media (max-width:760px){
+  .ag-opt{font-size:22px;padding:14px 8px;}
+}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">📐 Game · 图形小侦探</p>
+      <h1 class="ghero__title reveal">图形数角</h1>
+      <p class="ghero__sub reveal">一个多边形跳出来啦！数一数它<strong>有几个角</strong>、<strong>有几条边</strong>，从四个选项里选出对的那个～</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+
+        <div class="sg-controls">
+          <div class="sg-sizes" role="group" aria-label="选择难度">
+            <button class="sg-size is-on" data-lv="1" type="button">⭐ 简单<br><small>3 ~ 4 边形</small></button>
+            <button class="sg-size" data-lv="2" type="button">⭐⭐ 普通<br><small>3 ~ 6 边形</small></button>
+            <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 困难<br><small>3 ~ 8 边形</small></button>
+          </div>
+          <div class="sg-stats">
+            <span class="sg-stat">📋 第 <b id="agNo">1</b>/10 题</span>
+            <span class="sg-stat">🌟 得分 <b id="agScore">0</b></span>
+            <span class="sg-stat">🏆 最佳 <b id="agBest">—</b></span>
+          </div>
+        </div>
+
+        <div class="ag-question">
+          <p class="ag-ask" id="agAsk">…</p>
+          <p class="ag-hint">💡 绿色的小圆点就是顶点，角就藏在顶点那里～</p>
+          <div class="ag-figure" id="agFigure" aria-live="polite"></div>
+        </div>
+
+        <div class="ag-options" id="agOptions" aria-live="polite"></div>
+
+        <p class="ag-feedback" id="agFeedback"></p>
+
+        <div class="ag-actions">
+          <button class="btn btn--primary ag-next" id="agNext" type="button" hidden>下一题 ➡️</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>📐</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>选难度：<b>⭐ 3~4 边形</b>、<b>⭐⭐ 3~6 边形</b>、<b>⭐⭐⭐ 3~8 边形</b>。</li>
+        <li>每题会出现一个彩色的多边形，<b>绿色小圆点</b>标出它的顶点。</li>
+        <li>题目会问「<b>一共有几个角？</b>」或「<b>一共有几条边？</b>」——从四个选项里点一个！</li>
+        <li>答对加 1 分；答错也没关系，它会告诉你这是几边形，看清楚再点「<b>下一题 ➡️</b>」。</li>
+        <li>一轮 <b>10 题</b>，每个难度的最高分会保存成「🏆 最佳」。</li>
+        <li class="rules-tip">💡 小秘诀：像这样的凸多边形，「角的个数」和「边的条数」<b>一样多</b>——三角形 3 个角、四边形 4 个角、五边形 5 个角……数清边数，角数就出来啦！数的时候按顺序转一圈，才不会漏数或数重哦～</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/game-angle.js"></script>
+</body>
+</html>
