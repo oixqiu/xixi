@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 🔐 曦曦的空间</title>
+<meta name="description" content="输入管理员创建的用户名和密码登录，游戏成绩就能存到云端啦！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+.lg-box{max-width:420px;margin:0 auto;background:var(--paper,#fff);border-radius:22px;
+  padding:34px 28px;box-shadow:var(--sh-md,0 10px 30px rgba(0,0,0,.08));}
+.lg-box h2{text-align:center;font-size:24px;margin:0 0 6px;color:var(--ink,#33463c);}
+.lg-box p.lg-sub{text-align:center;font-size:14px;color:var(--ink-3,#7a8a80);margin:0 0 22px;}
+.lg-field{margin-bottom:14px;}
+.lg-field label{display:block;font-size:13.5px;font-weight:700;color:var(--ink-2,#4a5b52);margin-bottom:6px;}
+.lg-field input{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;
+  border:2px solid #d8e8de;font-size:16px;font-family:inherit;color:var(--ink,#33463c);outline:none;}
+.lg-field input:focus{border-color:#7ed6a8;}
+.lg-btn{width:100%;padding:13px;border:none;border-radius:14px;background:#7ed6a8;color:#fff;
+  font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:8px;}
+.lg-btn:hover{background:#6cc797;}
+.lg-btn:disabled{opacity:.6;cursor:wait;}
+.lg-err{min-height:22px;text-align:center;font-size:14px;font-weight:700;color:#c05050;margin:10px 0 0;}
+.lg-ok{text-align:center;padding:10px 0 0;}
+.lg-ok .big{font-size:44px;margin-bottom:8px;}
+.lg-ok p{font-size:15.5px;color:var(--ink-2,#4a5b52);margin:6px 0 18px;}
+.lg-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.lg-links a,.lg-links button{display:inline-block;padding:10px 18px;border-radius:12px;
+  border:2px solid #bfe9d3;background:#fff;color:#2f9d6d;font-size:14.5px;font-weight:800;
+  text-decoration:none;font-family:inherit;cursor:pointer;}
+.lg-who{position:fixed;top:14px;right:16px;z-index:50;}
+.lg-who button{padding:7px 14px;border-radius:999px;border:2px solid #bfe9d3;background:#fff;
+  font-size:13px;font-weight:800;color:#2f9d6d;font-family:inherit;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="rank.html">🏅 排行榜</a>
+      <a href="games.html">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+      </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="section" style="padding-top:40px;padding-bottom:60px;">
+    <div class="wrap">
+      <div class="lg-box">
+        <div id="lgForm">
+          <h2>🔐 登录小花园</h2>
+          <p class="lg-sub">账号由管理员提前创建好，没有注册入口哦</p>
+          <div class="lg-field">
+            <label for="lgUser">用户名</label>
+            <input id="lgUser" type="text" autocomplete="username" placeholder="比如 xixi">
+          </div>
+          <div class="lg-field">
+            <label for="lgPass">密码</label>
+            <input id="lgPass" type="password" autocomplete="current-password" placeholder="输入密码">
+          </div>
+          <button class="lg-btn" id="lgBtn" type="button">登录 ▶</button>
+          <p class="lg-err" id="lgErr"></p>
+        </div>
+        <div id="lgDone" style="display:none;">
+          <div class="lg-ok">
+            <div class="big">🌸</div>
+            <h2>欢迎回来，<span id="lgName">…</span>！</h2>
+            <p>现在玩游戏的成绩会自动存到云端，还能上排行榜！</p>
+            <div class="lg-links">
+              <a href="games.html">🎮 去玩</a>
+              <a href="rank.html">🏅 排行榜</a>
+              <button id="lgOut" type="button">退出登录</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小小花园</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/tcb-config.js"></script>
+<script src="assets/js/xixi-cloud.js"></script>
+<script>
+(function () {
+  'use strict';
+  var form = document.getElementById('lgForm');
+  var done = document.getElementById('lgDone');
+  var btn = document.getElementById('lgBtn');
+  var err = document.getElementById('lgErr');
+  var userIn = document.getElementById('lgUser');
+  var passIn = document.getElementById('lgPass');
+
+  function showDone(name) {
+    document.getElementById('lgName').textContent = name;
+    form.style.display = 'none';
+    done.style.display = 'block';
+  }
+  function showForm() {
+    form.style.display = 'block';
+    done.style.display = 'none';
+  }
+
+  function submit() {
+    var u = (userIn.value || '').trim();
+    var p = passIn.value || '';
+    if (!u || !p) { err.textContent = '用户名和密码都要填哦'; return; }
+    btn.disabled = true;
+    err.textContent = '';
+    window.XixiCloud.signIn(u, p, function (res) {
+      btn.disabled = false;
+      if (res.ok) { showDone(u); } else { err.textContent = res.msg; }
+    });
+  }
+  btn.addEventListener('click', submit);
+  passIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+
+  document.getElementById('lgOut').addEventListener('click', function () {
+    window.XixiCloud.signOut(function () { showForm(); err.textContent = ''; passIn.value = ''; });
+  });
+
+  window.XixiCloud.ready(function (ok) {
+    if (!ok) {
+      if (window.XixiCloud.cloudHome) {
+        err.innerHTML = '登录需要在云站点进行，<a href="' + window.XixiCloud.cloudHome +
+          '/login.html">点这里前往 →</a>';
+        err.style.color = '#2f9d6d';
+      } else {
+        err.textContent = '登录服务暂时没连上，稍后刷新试试～';
+      }
+      return;
+    }
+    var me = window.XixiCloud.me();
+    if (me) showDone(me.name); else showForm();
+  });
+})();
+</script>
+</body>
+</html>
