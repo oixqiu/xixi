@@ -24,15 +24,19 @@
     cancel: 'small', '24': 'small',
     rps: 'big', eggy: 'big', estimate: 'big', flash: 'big',
     round: 'big', change: 'big', poem: 'big', angle: 'big',
-    guessangle: 'big', ratio: 'big', clock: 'big'
+    guessangle: 'big', ratio: 'big', clock: 'big', mirror: 'big'
   };
   var NAMES = {
     schulte: '舒尔特方格', jump: '跳步舒尔特', rps: '剪子包袱锤', guess: '猜数字',
     mole: '打地鼠', eggy: '彩虹蛋蛋', estimate: '加法估算', cancel: '数字消除',
     flash: '数字快闪', '24': '24 点', round: '凑整口算', change: '购物找零',
     poem: '古诗填字', angle: '图形数角', guessangle: '预估角度',
-    ratio: '比例相等', clock: '认识钟表'
+    ratio: '比例相等', clock: '认识钟表', mirror: '光的反射'
   };
+
+  /* 服务器不通时游戏必须照常玩：所有请求都有超时，超时即视为失败，绝不阻塞游戏 */
+  var TIMEOUT = 6000;      // 单次请求超时（毫秒）
+  var MAX_QUEUE = 60;      // 补交队列上限，超出丢弃最旧的（避免 localStorage 撑爆）
 
   var state = { user: null, inited: false, readyCbs: [] };
 
@@ -59,30 +63,43 @@
   function me() { return state.user; }
 
   /* ---------------- fetch 封装（ES5，用 XHR 保证老内核可用） ---------------- */
+  /* 关键约定：无论服务器多慢/断网，都会在 TIMEOUT 内回调，游戏不会被卡住 */
   function request(method, path, body, cb, auth) {
+    if (!BASE) { cb({ ok: false, msg: '还没配置服务器地址' }); return; }
+    var done = false;
     var xhr = new XMLHttpRequest();
-    var url = BASE + path;
-    xhr.open(method, url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    if (auth !== false) {
-      var t = getToken();
-      if (t) xhr.setRequestHeader('Authorization', 'Bearer ' + t);
+    function finish(res) {
+      if (done) return;      // 防止超时与 onreadystatechange 双回调
+      done = true;
+      try { xhr.abort(); } catch (e) {}
+      cb(res);
+    }
+    try {
+      xhr.open(method, BASE + path, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      if (auth !== false) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Authorization', 'Bearer ' + t);
+      }
+    } catch (e) {
+      finish({ ok: false, msg: '无法连接服务器' });
+      return;
     }
     xhr.onreadystatechange = function () {
-      if (xhr.readyState !== 4) return;
+      if (xhr.readyState !== 4 || done) return;
       var data = null;
       try { data = JSON.parse(xhr.responseText); } catch (e) {}
-      if (!data) {
-        cb({ ok: false, msg: '服务器没返回数据（HTTP ' + xhr.status + '），检查一下服务有没有启动' });
-        return;
-      }
-      if (xhr.status >= 200 && xhr.status < 300) { cb(data); }
-      else { cb({ ok: false, msg: data.msg || ('请求失败 HTTP ' + xhr.status) }); }
+      if (!data) { finish({ ok: false, msg: '服务器没返回数据（HTTP ' + xhr.status + '）' }); return; }
+      if (xhr.status >= 200 && xhr.status < 300) { finish(data); }
+      else { finish({ ok: false, msg: data.msg || ('请求失败 HTTP ' + xhr.status) }); }
     };
-    xhr.onerror = function () {
-      cb({ ok: false, msg: '连不上服务器，请检查网络或服务器地址' });
-    };
-    xhr.send(body ? JSON.stringify(body) : null);
+    xhr.onerror = function () { finish({ ok: false, msg: '连不上服务器，请稍后再试' }); };
+    xhr.ontimeout = function () { finish({ ok: false, msg: '服务器响应超时' }); };
+    try { xhr.timeout = TIMEOUT; } catch (e) {}   // 老内核可能不支持
+    // 双保险：即使老内核不支持 xhr.timeout，也用定时器兜底
+    setTimeout(function () { finish({ ok: false, msg: '服务器响应超时' }); }, TIMEOUT + 300);
+    try { xhr.send(body ? JSON.stringify(body) : null); }
+    catch (e) { finish({ ok: false, msg: '发送失败' }); }
   }
 
   /* ---------------- 初始化 ---------------- */
@@ -145,17 +162,28 @@
   function queueRows(rows) {
     try {
       var q = JSON.parse(localStorage.getItem(Q_KEY) || '[]');
-      q = q.concat(rows).slice(-200);
-      localStorage.setItem(Q_KEY, JSON.stringify(q));
+      if (!isArray(q)) q = [];
+      q = q.concat(rows);
+      // 只保留每个游戏/难度最新的一条，避免队列无限膨胀
+      var seen = {}, dedup = [];
+      for (var i = q.length - 1; i >= 0; i--) {
+        var k = q[i].gameId + '|' + q[i].level;
+        if (seen[k]) continue;
+        seen[k] = 1;
+        dedup.unshift(q[i]);
+      }
+      if (dedup.length > MAX_QUEUE) dedup = dedup.slice(-MAX_QUEUE);
+      localStorage.setItem(Q_KEY, JSON.stringify(dedup));
     } catch (e) {}
   }
+  function isArray(a) { return Object.prototype.toString.call(a) === '[object Array]'; }
   function flushQueue() {
     var q = [];
     try {
       q = JSON.parse(localStorage.getItem(Q_KEY) || '[]');
       localStorage.removeItem(Q_KEY);
     } catch (e) { return; }
-    if (!q.length || !state.user) return;
+    if (!isArray(q) || !q.length || !state.user) return;
     sendRows(q, function (ok) { if (!ok) queueRows(q); });
   }
   function sendRows(rows, cb) {
@@ -189,7 +217,9 @@
       push('default', val);
     }
     if (!rows.length) return;
-    if (!state.user) { queueRows(rows); return; }   // 未登录先排队，登录后补交
+    // 未登录先排队，登录后补交
+    if (!state.user) { queueRows(rows); return; }
+    // 发送失败也不阻塞游戏（回调里只是重新排队）
     sendRows(rows, function (ok) { if (!ok) queueRows(rows); });
   }
 
@@ -202,6 +232,14 @@
       });
   }
   function fetchAllScores(cb) { fetchRank('', cb); }
+
+  /* 探测服务器是否在线（游戏本身不依赖它，纯供 UI 提示用） */
+  function ping(cb) {
+    if (!BASE) { cb(false, '未配置服务器'); return; }
+    request('GET', '/api/health', null, function (res) {
+      cb(!!res.ok, res.ok ? '' : (res.msg || '服务器暂时不可用'));
+    });
+  }
 
   /* ---------------- 顶部登录小挂件 ---------------- */
   var BAR_ID = 'xxApiBar';
@@ -254,6 +292,7 @@
     fetchAllScores: fetchAllScores,
     fetchRank: fetchRank,
     flushQueue: flushQueue,
+    ping: ping,
     names: NAMES,
     better: BETTER,
     isAdmin: function () { return !!(state.user && state.user.role === 'admin'); },
