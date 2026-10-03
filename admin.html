@@ -63,20 +63,21 @@
     <div class="wrap ad-wrap">
 
       <!-- 未登录 / 非管理员时显示这个门禁 -->
-      <div class="ad-gate" id="adGate">
+      <!-- 用真 form：手机上键盘的「完成」键和回车都能提交，不会出现"点了没反应" -->
+      <form class="ad-gate" id="adGate" autocomplete="on">
         <h2>⚙️ 管理后台</h2>
         <p>请用管理员账号登录</p>
         <div class="ad-field" style="text-align:left;">
           <label for="adUser">管理员账号</label>
-          <input id="adUser" type="text" autocomplete="username" placeholder="admin">
+          <input id="adUser" name="username" type="text" autocomplete="username" placeholder="admin">
         </div>
         <div class="ad-field" style="text-align:left;margin-top:12px;">
           <label for="adPass">密码</label>
-          <input id="adPass" type="password" autocomplete="current-password" placeholder="输入密码">
+          <input id="adPass" name="password" type="password" autocomplete="current-password" placeholder="输入密码">
         </div>
-        <button class="ad-btn" id="adLogin" type="button" style="width:100%;margin-top:16px;">登录后台</button>
+        <button class="ad-btn" id="adLogin" type="submit" style="width:100%;margin-top:16px;">登录后台</button>
         <p class="ad-msg" id="adGateMsg"></p>
-      </div>
+      </form>
 
       <!-- 管理主界面 -->
       <div id="adMain" style="display:none;">
@@ -185,12 +186,19 @@
   }
 
   /* ---------- 登录门禁 ---------- */
-  document.getElementById('adLogin').addEventListener('click', function () {
+  /* 监听 form 的 submit：点按钮和按回车/键盘「完成」都会走这里 */
+  var logging = false;
+  document.getElementById('adGate').addEventListener('submit', function (e) {
+    e.preventDefault();          // 关键：不阻止的话浏览器会刷新页面，看起来像"登录出错"
+    if (logging) return;         // 防重复提交
     var u = document.getElementById('adUser').value.trim();
     var p = document.getElementById('adPass').value;
     if (!u || !p) { gateMsg.className = 'ad-msg err'; gateMsg.textContent = '账号密码都要填'; return; }
+    logging = true;
+    gateMsg.className = 'ad-msg';
     gateMsg.textContent = '登录中…';
     window.XixiCloud.signIn(u, p, function (res) {
+      logging = false;
       if (!res.ok) { gateMsg.className = 'ad-msg err'; gateMsg.textContent = res.msg; return; }
       if (res.user.role !== 'admin') {
         window.XixiCloud.signOut();

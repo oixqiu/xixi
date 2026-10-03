@@ -65,15 +65,18 @@
         <div id="lgForm">
           <h2>🔐 登录小花园</h2>
           <p class="lg-sub">账号由管理员提前创建好，没有注册入口哦</p>
-          <div class="lg-field">
-            <label for="lgUser">用户名</label>
-            <input id="lgUser" type="text" autocomplete="username" placeholder="比如 xixi">
-          </div>
-          <div class="lg-field">
-            <label for="lgPass">密码</label>
-            <input id="lgPass" type="password" autocomplete="current-password" placeholder="输入密码">
-          </div>
-          <button class="lg-btn" id="lgBtn" type="button">登录 ▶</button>
+          <!-- 用真 form：手机上键盘的「完成」键和回车都能提交 -->
+          <form id="lgLoginForm" autocomplete="on">
+            <div class="lg-field">
+              <label for="lgUser">用户名</label>
+              <input id="lgUser" name="username" type="text" autocomplete="username" placeholder="比如 xixi">
+            </div>
+            <div class="lg-field">
+              <label for="lgPass">密码</label>
+              <input id="lgPass" name="password" type="password" autocomplete="current-password" placeholder="输入密码">
+            </div>
+            <button class="lg-btn" id="lgBtn" type="submit">登录 ▶</button>
+          </form>
           <p class="lg-err" id="lgErr"></p>
         </div>
         <div id="lgDone" style="display:none;">
@@ -124,19 +127,26 @@
     done.style.display = 'none';
   }
 
+  var logging = false;
   function submit() {
+    if (logging) return;
     var u = (userIn.value || '').trim();
     var p = passIn.value || '';
     if (!u || !p) { err.textContent = '用户名和密码都要填哦'; return; }
+    logging = true;
     btn.disabled = true;
     err.textContent = '';
     window.XixiCloud.signIn(u, p, function (res) {
+      logging = false;
       btn.disabled = false;
       if (res.ok) { showDone(u); } else { err.textContent = res.msg; }
     });
   }
-  btn.addEventListener('click', submit);
-  passIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+  // 监听 form 的 submit：点按钮和按回车/键盘「完成」都会走这里
+  document.getElementById('lgLoginForm').addEventListener('submit', function (e) {
+    e.preventDefault();   // 不阻止的话浏览器会刷新页面
+    submit();
+  });
 
   document.getElementById('lgOut').addEventListener('click', function () {
     window.XixiCloud.signOut(function () { showForm(); err.textContent = ''; passIn.value = ''; });
