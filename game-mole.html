@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<script>
+/* 强制 HTTPS：http 进来立刻换成 https，否则登录会失败 */
+(function(){var l=window.location;if(l.protocol!=="http:")return;var h=l.hostname;
+if(h==="localhost"||h==="0.0.0.0"||h==="::1"||/^\d+\.\d+\.\d+\.\d+$/.test(h)||h.slice(-6)===".local")return;
+l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>打地鼠 🔨 曦曦的游戏屋</title>
