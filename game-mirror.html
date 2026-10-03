@@ -13,19 +13,20 @@
 /* 光的反射专属 */
 .mi-stage{display:flex;justify-content:center;margin:2px 0 14px;}
 .mi-stage svg{width:100%;max-width:380px;height:auto;display:block;}
-.mi-opts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
-.mi-opt{min-width:74px;padding:11px 10px;border-radius:14px;border:2px solid #bfe0f5;
-  background:#fff;font-size:16px;font-weight:800;color:#33463c;cursor:pointer;
-  transition:transform .15s ease;}
+.mi-opts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.mi-opt{width:64px;height:64px;border-radius:50%;border:2px solid #bfe0f5;
+  background:#fff;font-size:22px;font-weight:800;color:#33463c;cursor:pointer;
+  transition:transform .15s ease;padding:0;line-height:1;}
 .mi-opt:hover{transform:translateY(-2px);border-color:#7cc0e8;}
-.mi-opt:active{transform:scale(.95);}
-.mi-opt.is-ok{background:#7cc0e8;color:#fff;border-color:#5aa8d8;}
-.mi-opt.is-bad{background:#ffd6d6;color:#a33a3a;border-color:#f0a2a2;}
-.mi-opt.is-dim{opacity:.35;}
-.mi-fb{text-align:center;font-size:15px;font-weight:700;color:#4a5b52;min-height:24px;margin:10px 0 4px;}
-.mi-rule{text-align:center;font-size:14px;font-weight:700;color:#4a8fb5;margin:0 0 8px;min-height:20px;}
+.mi-opt:active{transform:scale(.92);}
+.mi-opt.is-ok{background:#7ed6a8;color:#fff;border-color:#5fc496;}
+.mi-opt.is-bad{background:#ffc9c9;color:#a33a3a;border-color:#f0a2a2;}
+.mi-opt.is-dim{opacity:.32;}
+.mi-fb{text-align:center;font-size:15px;font-weight:700;color:#4a5b52;min-height:24px;margin:10px 0 4px;line-height:1.6;}
+.mi-rule{text-align:center;font-size:15px;font-weight:700;color:#3f7f9e;margin:0 0 12px;min-height:22px;}
 .mi-next{display:block;margin:0 auto 6px;}
 .mi-next.is-hide{visibility:hidden;}
+.mi-ray{cursor:pointer;}
 </style>
 </head>
 <body>
@@ -54,7 +55,7 @@
     <div class="ghero__content">
       <p class="ghero__badge reveal">🪞 Game · 光的反射</p>
       <h1 class="ghero__title reveal">光的反射</h1>
-      <p class="ghero__sub reveal">镜子会把光弹回来！<strong>反射角 = 入射角</strong>——看准镜子，哪一条才是被弹出去的光？</p>
+      <p class="ghero__sub reveal">镜子会把光弹回来！<strong>反射角 = 入射角</strong>——凭眼睛判断，哪一条才是被弹出去的光？</p>
     </div>
   </section>
 
@@ -84,13 +85,14 @@
       <h2 class="section__title reveal">怎么玩 · 玩法说明</h2>
       <div class="rules reveal">
         <ol>
-          <li>屏幕上有一面<strong>水平的镜子</strong>，一束光从上面斜斜地射向镜面。</li>
-          <li>镜子会把光<strong>原路对称地弹回去</strong>，这叫反射。</li>
-          <li>镜面上画了<strong>一条法线</strong>（垂直于镜面的那条虚线）。</li>
-          <li><strong>反射角 = 入射角</strong>——光和法线夹的角度，入射和反射两边一样大。</li>
-          <li>在四个角度里，选出<strong>真正被弹出去的那束光</strong>。</li>
+          <li>屏幕上有一面<strong>水平的镜子</strong>，一束光从上面斜斜地射向镜面，入射角标好了度数。</li>
+          <li>镜子上面画了<strong>一条法线</strong>（垂直于镜面的那条虚线）。</li>
+          <li>从镜面往上的四条淡线，末端分别写着 <strong>A、B、C、D</strong>——<strong>线上的角度不写出来</strong>。</li>
+          <li>镜子会把光<strong>原路对称地弹回去</strong>，所以<strong>反射角 = 入射角</strong>，光和法线夹的角度两边一样大。</li>
+          <li>用眼睛找出那条<strong>和入射光一样斜</strong>的线，选它的字母（<strong>直接点线上的字母圆也行</strong>）。</li>
+          <li>答完才会告诉你每条线是多少度，方便你下次一眼认出来。</li>
           <li>一轮 <b>10 题</b>，<b>最佳成绩</b>自动保存！</li>
-          <li class="rules-tip">💡 小秘诀：先在脑子里把镜子沿着法线「翻」过去，入射光翻过去就是反射光啦！法线是这道题的万能钥匙。</li>
+          <li class="rules-tip">💡 小秘诀：先在脑子里把镜子沿着法线「翻」过去，入射光翻过去落在哪，那条就是答案！法线是这道题的万能钥匙。</li>
         </ol>
       </div>
     </div>

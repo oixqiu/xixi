@@ -23,7 +23,10 @@
   var score = 0;
   var started = false;   // 是否已经点过开始
   var asking = false;    // 是否在等玩家作答
+  var picked = -1;       // 已选的候选线序号，-1 表示还没选
   var cur = null;        // { inc, ans, opts:[4], mirrored }
+
+  var LETTERS = ['A', 'B', 'C', 'D'];
 
   /* ---------- 工具 ---------- */
 
@@ -145,20 +148,55 @@
   function render() {
     var info = svgFor();
     var side = info.side;
+    var revealed = (picked >= 0);   // 是否已作答（作答后才显示对错和角度）
 
     // 四个候选反射光线（都在同一侧，正确的那条和入射光对称）
+    // 未作答时四条线颜色/粗细完全一样，不泄露答案
     var candHtml = '';
     for (var i = 0; i < cur.opts.length; i++) {
       var ang = cur.opts[i];
       var p = rayFor(side, ang);
       var isAns = (ang === cur.ans);
+      var isPick = (i === picked);
+      var stroke = '#c9d6e0', width = 3, op = 0.5;
+      var badgeFill = '#ffffff', badgeStroke = '#c9d6e0', badgeText = '#7c8f9c';
+
+      if (revealed) {
+        if (isAns) {
+          stroke = '#7ed6a8'; width = 4; op = 0.95;
+          badgeFill = '#e8f9f0'; badgeStroke = '#7ed6a8'; badgeText = '#2f8f60';
+        } else if (isPick) {
+          stroke = '#f0a2a2'; width = 4; op = 0.9;
+          badgeFill = '#ffecec'; badgeStroke = '#f0a2a2'; badgeText = '#c14a4a';
+        } else {
+          op = 0.28;
+        }
+      }
+
+      // 只给「正确答案」和「你选的那条」标角度，其余两条不标，避免数字挤成一团
+      var showDeg = revealed && (isAns || isPick);
+      var arcColor = isAns ? '#3ba572' : '#c14a4a';
+
       candHtml += '<g class="mi-ray" data-ray="' + i + '">' +
+        // 加宽的透明线，方便手指点中
         '<line x1="' + CX + '" y1="' + MIRROR_Y + '" x2="' + p.x.toFixed(1) + '" y2="' + p.y.toFixed(1) +
-        '" stroke="' + (isAns ? '#7ed6a8' : '#c9d6e0') + '" stroke-width="3" ' +
-        'stroke-linecap="round" opacity="' + (isAns ? '0.95' : '0.5') + '"/>' +
-        '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 8).toFixed(1) +
-        '" font-size="15" font-weight="bold" fill="' + (isAns ? '#3ba572' : '#8a9aa8') +
-        '" text-anchor="middle">' + ang + '°</text>' +
+        '" stroke="transparent" stroke-width="16" stroke-linecap="round" fill="none"/>' +
+        '<line x1="' + CX + '" y1="' + MIRROR_Y + '" x2="' + p.x.toFixed(1) + '" y2="' + p.y.toFixed(1) +
+        '" stroke="' + stroke + '" stroke-width="' + width + '" ' +
+        'stroke-linecap="round" opacity="' + op + '"/>' +
+        // 角度弧线：作答后才画，帮孩子看清这条线离法线多远
+        (showDeg ? '<path d="' + arcPath(CX, MIRROR_Y, 34, 90, 90 + side * ang) +
+          '" fill="none" stroke="' + arcColor + '" stroke-width="2" opacity="0.9"/>' : '') +
+        // 末端只写字母，不写度数
+        '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="11" ' +
+        'fill="' + badgeFill + '" stroke="' + badgeStroke + '" stroke-width="2"/>' +
+        '<text x="' + p.x.toFixed(1) + '" y="' + (p.y + 5).toFixed(1) +
+        '" font-size="14" font-weight="bold" fill="' + badgeText +
+        '" text-anchor="middle">' + LETTERS[i] + '</text>' +
+        // 角度数字贴在字母圆外侧，跟着线走，天然错开
+        (showDeg ? '<text x="' + (p.x + 17).toFixed(1) + '" y="' + (p.y + 5).toFixed(1) +
+          '" font-size="13" font-weight="bold" fill="' + arcColor +
+          '" text-anchor="start">' + ang + '°</text>' : '') +
         '</g>';
     }
 
@@ -168,46 +206,60 @@
       '<path d="M2 1L8 5L2 9" fill="none" stroke="#f5a623" stroke-width="1.6" stroke-linecap="round"/></marker></defs>' +
       info.svg + candHtml + '</svg>';
 
-    miRule.textContent = '入射角 = ' + cur.inc + '°，反射角应该等于多少度？';
+    miRule.innerHTML = '入射角 <b>' + cur.inc + '°</b>，哪一条是被弹回去的光？';
 
-    // 选项按钮
+    // 选项按钮：显示 A/B/C/D，不显示度数
     miOpts.innerHTML = '';
     for (var j = 0; j < cur.opts.length; j++) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'mi-opt';
-      b.textContent = cur.opts[j] + '°';
+      b.textContent = LETTERS[j];
+      b.setAttribute('data-i', String(j));
       b.setAttribute('data-v', String(cur.opts[j]));
-      b.addEventListener('click', (function (btn, val) {
-        return function () { pick(btn, val); };
-      })(b, cur.opts[j]));
+      b.addEventListener('click', (function (btn, idx) {
+        return function () { pick(btn, idx); };
+      })(b, j));
       miOpts.appendChild(b);
     }
   }
 
   /* ---------- 作答 ---------- */
 
-  function pick(btn, val) {
+  function pick(btn, idx) {
     if (!asking) return;
     asking = false;
+    picked = idx;
 
+    var ansIdx = 0;
+    for (var k = 0; k < cur.opts.length; k++) {
+      if (cur.opts[k] === cur.ans) { ansIdx = k; break; }
+    }
+    var right = (cur.opts[idx] === cur.ans);
+
+    // 重画图形，标出对错
+    render();
+
+    // 选项按钮状态
     var btns = miOpts.getElementsByTagName('button');
     for (var i = 0; i < btns.length; i++) {
       var b = btns[i];
-      var v = parseInt(b.getAttribute('data-v'), 10);
-      if (v === cur.ans) b.className = 'mi-opt is-ok';
-      else if (b === btn) b.className = 'mi-opt is-bad';
+      var ii = parseInt(b.getAttribute('data-i'), 10);
+      if (ii === ansIdx) b.className = 'mi-opt is-ok';
+      else if (ii === picked) b.className = 'mi-opt is-bad';
       else b.className = 'mi-opt is-dim';
     }
 
-    if (val === cur.ans) {
+    if (right) {
       score++;
       miScore.textContent = String(score);
-      miFb.innerHTML = '✅ 答对啦！入射角 ' + cur.inc + '°，反射角也是 ' + cur.ans + '°，两边一样大！';
-      say('答对啦！🪞✨');
+      miFb.innerHTML = '✅ 答对啦！<b>' + LETTERS[idx] + '</b> 和入射角一样，都是 ' +
+        cur.inc + '°，两边一样大！';
+      say('答对啦！🪞');
     } else {
-      miFb.innerHTML = '哦，正确答案是 <b>' + cur.ans + '°</b>——反射角和入射角要一样大哦。';
-      say('记住「入射角 = 反射角」～');
+      miFb.innerHTML = '这条是 <b>' + LETTERS[idx] + '</b>。正确答案是 <b>' +
+        LETTERS[ansIdx] + '</b>（' + cur.ans + '°）——反射角和入射角要一样大哦。';
+      say('两边要一样大～');
     }
     miNext.classList.remove('is-hide');
   }
@@ -218,6 +270,7 @@
     miNo.textContent = String(qIndex + 1);
     miFb.textContent = '';
     miNext.classList.add('is-hide');
+    picked = -1;
     makeQuestion();
     render();
     asking = true;
@@ -246,6 +299,7 @@
     miNext.textContent = '下一题 ▶';
     miFb.textContent = '';
     miNext.classList.add('is-hide');
+    picked = -1;
     makeQuestion();
     render();
     asking = true;
@@ -255,6 +309,25 @@
     if (!started) { start(); return; }
     if (qIndex >= ROUND) { start(); return; }
     next();
+  });
+
+  // 点图形上的光线/字母圆 = 点对应选项（手指目标大得多）
+  // 不用 closest()：老 Safari 内核不支持，改为手动向上找带 data-ray 的祖先
+  miStage.addEventListener('click', function (e) {
+    if (!asking) return;
+    var node = e.target;
+    var guard = 0;
+    while (node && guard < 8) {
+      if (node.getAttribute) {
+        var ray = node.getAttribute('data-ray');
+        if (ray !== null && ray !== undefined) {
+          pick(null, parseInt(ray, 10));
+          return;
+        }
+      }
+      node = node.parentNode;
+      guard++;
+    }
   });
 
   showBest();
