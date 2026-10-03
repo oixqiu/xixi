@@ -36,6 +36,10 @@
 .ad-badge--admin{background:#fff3e0;color:#c07a1a;}
 .ad-badge--player{background:#eaf7ef;color:#2f9d6d;}
 .ad-empty{text-align:center;color:var(--ink-3,#7a8a80);padding:22px 0;font-size:14px;}
+.ad-score-in{width:84px;padding:6px 9px;border-radius:9px;border:2px solid #d8e8de;font-size:14px;
+  font-family:inherit;color:var(--ink,#33463c);outline:none;background:#fff;}
+.ad-score-in:focus{border-color:#7ed6a8;}
+.ad-score-in.is-ok{border-color:#7ed6a8;background:#eaf7ef;}
 .ad-gate{max-width:400px;margin:60px auto;background:#fff;border-radius:22px;padding:32px 26px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center;}
 .ad-gate h2{font-size:22px;margin:0 0 8px;color:var(--ink,#33463c);}
 .ad-gate p{font-size:13.5px;color:var(--ink-3,#7a8a80);margin:0 0 20px;}
@@ -127,8 +131,33 @@
         </div>
 
         <div class="ad-box">
+          <h2>🏅 补一条成绩</h2>
+          <p class="ad-sub">孩子还没玩某个游戏时，管理员可以直接给他一条成绩，排行榜会立刻重排</p>
+          <div class="ad-row">
+            <div class="ad-field">
+              <label for="adAddScoreUser">用户名</label>
+              <input id="adAddScoreUser" type="text" placeholder="比如 xixi">
+            </div>
+            <div class="ad-field">
+              <label for="adAddScoreGame">游戏</label>
+              <select id="adAddScoreGame"></select>
+            </div>
+            <div class="ad-field" style="max-width:110px;">
+              <label for="adAddScoreLevel">难度</label>
+              <input id="adAddScoreLevel" type="text" placeholder="default">
+            </div>
+            <div class="ad-field" style="max-width:110px;">
+              <label for="adAddScoreValue">成绩</label>
+              <input id="adAddScoreValue" type="number" step="any" min="0" placeholder="10">
+            </div>
+            <button class="ad-btn" id="adAddScore" type="button">+ 补上</button>
+          </div>
+          <p class="ad-msg" id="adAddScoreMsg"></p>
+        </div>
+
+        <div class="ad-box">
           <h2>📊 最近成绩记录</h2>
-          <p class="ad-sub">最新 300 条，可单条删除</p>
+          <p class="ad-sub">最新 300 条。改数字即时生效，排行榜自动重排；也可单条删除</p>
           <table class="ad-table">
             <thead><tr><th>用户</th><th>游戏</th><th>难度</th><th>成绩</th><th>时间</th><th style="text-align:right;">操作</th></tr></thead>
             <tbody id="adScoreRows"></tbody>
@@ -217,9 +246,48 @@
     var me = window.XixiCloud.me();
     document.getElementById('adWho').textContent = me ? me.name : '—';
     document.getElementById('adApi').textContent = window.XIXI_API.base;
+    loadGames();
     loadUsers();
     loadScores();
   }
+
+  /* ---------- 游戏下拉框（补成绩用） ---------- */
+  function loadGames() {
+    api('GET', '/api/games', null, function (res) {
+      if (!res.ok || !res.games) return;
+      var sel = document.getElementById('adAddScoreGame');
+      var html = '';
+      for (var i = 0; i < res.games.length; i++) {
+        html += '<option value="' + escapeHtml(res.games[i].id) + '">' +
+          escapeHtml(res.games[i].name) + '</option>';
+      }
+      sel.innerHTML = html;
+    });
+  }
+
+  /* ---------- 补一条成绩 ---------- */
+  document.getElementById('adAddScore').addEventListener('click', function () {
+    var u = document.getElementById('adAddScoreUser').value.trim();
+    var g = document.getElementById('adAddScoreGame').value;
+    var lv = document.getElementById('adAddScoreLevel').value.trim() || 'default';
+    var vRaw = document.getElementById('adAddScoreValue').value;
+    var msg = document.getElementById('adAddScoreMsg');
+    if (!u || !g) { msg.className = 'ad-msg err'; msg.textContent = '用户名和游戏都要选'; return; }
+    if (vRaw === '') { msg.className = 'ad-msg err'; msg.textContent = '成绩要填一个数字'; return; }
+    var v = parseFloat(vRaw);
+    if (isNaN(v) || v < 0) { msg.className = 'ad-msg err'; msg.textContent = '成绩要填一个不小于 0 的数字'; return; }
+    msg.className = 'ad-msg';
+    msg.textContent = '添加中…';
+    api('POST', '/api/admin/scores',
+      { username: u, gameId: g, level: lv, value: v },
+      function (res) {
+        if (!res.ok) { msg.className = 'ad-msg err'; msg.textContent = res.msg; return; }
+        msg.className = 'ad-msg ok';
+        msg.textContent = '✅ 已给 ' + u + ' 的「' + res.gameName + '」补上 ' + v;
+        document.getElementById('adAddScoreValue').value = '';
+        loadScores();
+      });
+  });
 
   /* ---------- 用户列表 ---------- */
   function loadUsers() {
@@ -298,14 +366,19 @@
       for (var i = 0; i < res.rows.length && i < 60; i++) {
         var r = res.rows[i];
         var unit = r.better === 'small' ? '秒' : '分';
-        var lv = r.level === 'default' ? '—' : r.level;
+        var lv = r.level === 'default' ? '—' : escapeHtml(r.level);
+        // 成绩做成可编辑输入框，回车或失焦即保存
         html += '<tr><td>' + escapeHtml(r.username) + '</td><td>' + escapeHtml(r.gameName) + '</td>' +
-          '<td>' + lv + '</td><td><b>' + r.value + '</b> ' + unit + '</td>' +
+          '<td>' + lv + '</td>' +
+          '<td><input class="ad-score-in" type="number" step="any" min="0" value="' + r.value +
+          '" data-score="' + r.id + '" data-unit="' + unit + '"></td>' +
           '<td>' + fmtTime(r.createdAt) + '</td>' +
-          '<td style="text-align:right;"><button class="ad-btn ad-btn--danger ad-btn--sm" data-dels="' +
-          r.id + '">删除</button></td></tr>';
+          '<td style="text-align:right;white-space:nowrap;">' +
+          '<button class="ad-btn ad-btn--sm" data-saves="' + r.id + '">保存</button> ' +
+          '<button class="ad-btn ad-btn--danger ad-btn--sm" data-dels="' + r.id + '">删除</button></td></tr>';
       }
       tb.innerHTML = html;
+      bindScoreSave();
       var sbtns = document.querySelectorAll('[data-dels]');
       for (var j = 0; j < sbtns.length; j++) {
         sbtns[j].addEventListener('click', function () {
@@ -318,6 +391,39 @@
         });
       }
     });
+  }
+
+  function bindScoreSave() {
+    function save(id, input) {
+      var v = parseFloat(input.value);
+      if (isNaN(v)) { alert('成绩要填一个数字'); input.focus(); return; }
+      if (v < 0) { alert('成绩不能是负数'); input.focus(); return; }
+      api('PATCH', '/api/admin/scores', { id: parseInt(id, 10), value: v }, function (res) {
+        if (!res.ok) { alert(res.msg || '保存失败'); return; }
+        input.className = 'ad-score-in is-ok';
+        setTimeout(function () { input.className = 'ad-score-in'; }, 900);
+      });
+    }
+    var boxes = document.querySelectorAll('[data-score]');
+    for (var i = 0; i < boxes.length; i++) {
+      (function (input) {
+        var id = input.getAttribute('data-score');
+        // 回车保存
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        });
+        // 失焦保存
+        input.addEventListener('blur', function () { save(id, input); });
+      })(boxes[i]);
+    }
+    var saveBtns = document.querySelectorAll('[data-saves]');
+    for (var k = 0; k < saveBtns.length; k++) {
+      saveBtns[k].addEventListener('click', function () {
+        var id = this.getAttribute('data-saves');
+        var input = document.querySelector('[data-score="' + id + '"]');
+        if (input) save(id, input);
+      });
+    }
   }
 
   document.getElementById('adRefresh').addEventListener('click', function () { loadUsers(); loadScores(); });

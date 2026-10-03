@@ -108,7 +108,8 @@
 
   var ALL = null;     // 全量聚合结果
   var cur = null;     // 当前显示的 tab key
-  var myName = null;
+  var myName = null;  // 我的脱敏名（服务端已脱敏，榜单里也是脱敏名，可直接比对）
+  var myNameRaw = null; // 我的真实用户名（兜底用）
 
   function fmtVal(better, v) {
     if (better === 'small' && v >= 1000) return (v / 1000).toFixed(2).replace(/\.?0+$/, '') + ' 秒';
@@ -237,16 +238,17 @@
     return tabs;
   }
 
+  // 排行榜是公开的，未登录也能看。名字由服务端脱敏（⭐+最后一个字）。
+  // 登录后会顺便高亮自己那一行 —— 用脱敏名匹配不上，所以再靠 uid 兜底。
   window.XixiCloud.ready(function (ok) {
-    if (!ok) {
-      tip.textContent = '还没登录，登录后才能看排行榜～';
-      tip.style.display = 'block';
-      return;
+    var m = ok ? window.XixiCloud.me() : null;
+    if (m) {
+      myNameRaw = m.name;
+      myName = window.XixiCloud.maskName ? window.XixiCloud.maskName(m.name) : m.name;
+      tip.innerHTML = '你好，<b>' + myName + '</b>！你排在下面 <span class="rk-me-dot">•</span> 的位置 <a href="games.html">去玩一局 →</a>';
+    } else {
+      tip.innerHTML = '下面是全班同学的成绩榜 🎉 <a href="login.html">登录</a>能看到自己的名次';
     }
-    var m = window.XixiCloud.me();
-    if (!m) { tip.style.display = 'block'; return; }
-    myName = m.name;
-    tip.innerHTML = '你好，<b>' + myName + '</b>！下面是大家的成绩 <a href="games.html">去玩一局 →</a>';
     load();
   });
 })();

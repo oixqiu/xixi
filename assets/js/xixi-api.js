@@ -282,6 +282,20 @@
     }
   }
 
+  /* ---------------- 姓名脱敏 ---------------- */
+  /* 服务端排行榜已脱敏，这里用同一套规则，方便登录后高亮自己那一行 */
+  function maskName(u) {
+    u = String(u == null ? '' : u);
+    if (!u) return '⭐';
+    var chars = Array.from ? Array.from(u) : u.split('');
+    if (chars.length === 1) return '⭐' + chars[0];
+    // 中文名取最后一个字；纯拼音/英文名取最后一个字符
+    for (var i = 0; i < chars.length; i++) {
+      if (chars[i].charCodeAt(0) > 0x2E80) return '⭐' + chars[i];
+    }
+    return '⭐' + chars[chars.length - 1];
+  }
+
   /* ---------------- 导出 ---------------- */
   window.XixiCloud = {
     ready: ready,
@@ -293,6 +307,7 @@
     fetchRank: fetchRank,
     flushQueue: flushQueue,
     ping: ping,
+    maskName: maskName,
     names: NAMES,
     better: BETTER,
     isAdmin: function () { return !!(state.user && state.user.role === 'admin'); },
