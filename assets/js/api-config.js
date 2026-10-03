@@ -6,5 +6,5 @@
    ========================================================= */
 window.XIXI_API = {
   /* 服务端地址（不要以 / 结尾） */
-  base: 'http://localhost:8945'
+  base: 'https://api-xixi.bjb.pub'
 };
