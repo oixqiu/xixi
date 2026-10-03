@@ -56,6 +56,45 @@
 
   function me() { return state.user; }
 
+  /* ---------- 云端小挂件（仅 CloudBase 站点显示） ---------- */
+  function injectCloudBar() {
+    if (!hostOk) return;
+    var style = document.createElement('style');
+    style.textContent =
+      '.xx-cloudbar{position:fixed;top:8px;right:8px;z-index:9999;display:inline-flex;' +
+      'align-items:center;gap:6px;font:600 13px/1 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;' +
+      'background:rgba(255,255,255,.92);color:#3a7d5d;padding:7px 12px;border-radius:999px;' +
+      'box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;text-decoration:none;user-select:none;}' +
+      '.xx-cloudbar:hover{background:#fff;}' +
+      '.xx-cloudbar--off{color:#c0653f;}';
+    document.head.appendChild(style);
+    var bar = document.createElement('a');
+    bar.id = 'xxCloudBar';
+    bar.className = 'xx-cloudbar';
+    bar.href = (CFG.cloudHome || '') + '/login.html';
+    bar.target = '_self';
+    bar.addEventListener('click', function (e) {
+      // 已登录时点「登出」，否则去登录页
+      if (state.user) {
+        e.preventDefault();
+        signOut(function () { updateCloudBar(); });
+      }
+    });
+    document.body.appendChild(bar);
+    updateCloudBar();
+  }
+  function updateCloudBar() {
+    var bar = document.getElementById('xxCloudBar');
+    if (!bar) return;
+    if (state.user && state.user.name) {
+      bar.textContent = '👤 ' + state.user.name + ' · 点此登出';
+      bar.className = 'xx-cloudbar';
+    } else {
+      bar.textContent = '👤 登录后成绩上榜';
+      bar.className = 'xx-cloudbar xx-cloudbar--off';
+    }
+  }
+
   /* ---------- SDK 加载 ---------- */
   function loadScript(url, cb) {
     var s = document.createElement('script');
@@ -102,6 +141,7 @@
       }
       function flush() {
         var cbs = state.readyCbs; state.readyCbs = [];
+        updateCloudBar();
         for (var i = 0; i < cbs.length; i++) { try { cbs[i](!!app); } catch (e) {} }
       }
     });
@@ -139,6 +179,8 @@
       p1.then(function () {
         state.user = { name: username };
         cacheUser(state.user);
+        updateCloudBar();
+        flushQueue();   // 登录后把本地排队的成绩补交云端
         cb({ ok: true });
       }).catch(function (err) {
         cb({ ok: false, msg: friendlyError(err) });
@@ -262,5 +304,11 @@
       origSet(key, val);
       try { reportBest(key, val); } catch (e) { /* 不影响游戏 */ }
     };
+  }
+
+  /* 启动：在允许连云端的域名下挂出登录小挂件 */
+  if (hostOk) {
+    if (document.body) injectCloudBar();
+    else document.addEventListener('DOMContentLoaded', injectCloudBar);
   }
 })();
