@@ -45,6 +45,7 @@
     </a>
     <nav class="nav__links" id="navLinks">
       <a href="rank.html" class="is-active" aria-current="page">🏅 排行榜</a>
+      <a href="admin.html">⚙️ 后台</a>
       <a href="games.html">🎮 游戏屋</a>
       <a href="index.html" class="nav__cta">回首页</a>
       </nav>
@@ -86,8 +87,8 @@
 <button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
 
 <script src="assets/js/main.js"></script>
-<script src="assets/js/tcb-config.js"></script>
-<script src="assets/js/xixi-cloud.js"></script>
+<script src="assets/js/api-config.js"></script>
+<script src="assets/js/xixi-api.js"></script>
 <script src="assets/js/game-common.js"></script>
 <script>
 (function () {
@@ -193,13 +194,13 @@
   }
 
   function load() {
-    statusEl.textContent = '⏳ 正在从云端取成绩…';
+    statusEl.textContent = '⏳ 正在从服务器取成绩…';
     window.XixiCloud.fetchAllScores(function (res) {
       if (!res.ok) { statusEl.textContent = '😢 ' + res.msg; return; }
       statusEl.textContent = '';
-      ALL = aggregate(res.data);
+      ALL = fromGroups(res.groups);
       if (!ALL.length) {
-        statusEl.textContent = '还没有任何云端成绩，去玩一局再来看看！';
+        statusEl.textContent = '还没有任何成绩，去玩一局再来看看！';
         return;
       }
       tabsEl.style.display = 'flex';
@@ -217,19 +218,34 @@
     });
   }
 
+  /* 把服务端返回的分组结构转成页面要用的 tabs */
+  function fromGroups(groups) {
+    var tabs = [];
+    for (var i = 0; i < (groups || []).length; i++) {
+      var g = groups[i];
+      var rows = g.items || [];
+      if (!rows.length) continue;
+      tabs.push({
+        key: g.gameId + '|' + g.level,
+        gameId: g.gameId,
+        gameName: rows[0].gameName,
+        level: g.level,
+        better: rows[0].better,
+        rows: rows
+      });
+    }
+    return tabs;
+  }
+
   window.XixiCloud.ready(function (ok) {
     if (!ok) {
-      if (window.XixiCloud.cloudHome) {
-        tip.innerHTML = '排行榜在云站点上，<a href="' + window.XixiCloud.cloudHome +
-          '/rank.html">点这里前往 →</a>';
-      } else {
-        tip.textContent = '云服务暂时没连上，稍后刷新试试～';
-      }
+      tip.textContent = '还没登录，登录后才能看排行榜～';
+      tip.style.display = 'block';
       return;
     }
-    var me = window.XixiCloud.me();
-    if (!me) { tip.style.display = 'block'; return; }
-    myName = me.name;
+    var m = window.XixiCloud.me();
+    if (!m) { tip.style.display = 'block'; return; }
+    myName = m.name;
     tip.innerHTML = '你好，<b>' + myName + '</b>！下面是大家的成绩 <a href="games.html">去玩一局 →</a>';
     load();
   });

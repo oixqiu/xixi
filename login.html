@@ -48,6 +48,7 @@
     </a>
     <nav class="nav__links" id="navLinks">
       <a href="rank.html">🏅 排行榜</a>
+      <a href="admin.html">⚙️ 后台</a>
       <a href="games.html">🎮 游戏屋</a>
       <a href="index.html" class="nav__cta">回首页</a>
       </nav>
@@ -101,8 +102,8 @@
 <button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
 
 <script src="assets/js/main.js"></script>
-<script src="assets/js/tcb-config.js"></script>
-<script src="assets/js/xixi-cloud.js"></script>
+<script src="assets/js/api-config.js"></script>
+<script src="assets/js/xixi-api.js"></script>
 <script>
 (function () {
   'use strict';
@@ -143,17 +144,14 @@
 
   window.XixiCloud.ready(function (ok) {
     if (!ok) {
-      if (window.XixiCloud.cloudHome) {
-        err.innerHTML = '登录需要在云站点进行，<a href="' + window.XixiCloud.cloudHome +
-          '/login.html">点这里前往 →</a>';
-        err.style.color = '#2f9d6d';
-      } else {
-        err.textContent = '登录服务暂时没连上，稍后刷新试试～';
-      }
+      err.textContent = window.XixiCloud.apiBase
+        ? '还没登录，或登录已过期～重新登录就好'
+        : '还没配置服务器地址，暂时无法登录';
+      showForm();
       return;
     }
-    var me = window.XixiCloud.me();
-    if (me) showDone(me.name); else showForm();
+    var m = window.XixiCloud.me();
+    if (m) showDone(m.name); else showForm();
   });
 })();
 </script>

@@ -29,15 +29,35 @@
 ├── game-poem.html      # 古诗填字
 ├── game-angle.html     # 图形数角
 ├── game-guessangle.html # 预估角度（凭感觉猜度数）
+├── login.html          # 🔐 登录（账号由管理员创建）
+├── rank.html           # 🏅 小小冠军榜
+├── admin.html          # ⚙️ 管理后台（建用户、改密码、查成绩）
 ├── CNAME               # 自定义域名 xixi.yi51.com（不要删！删了域名会掉）
 └── assets/
     ├── css/style.css   # 样式
     ├── css/games.css   # 游戏页专属样式
     ├── js/main.js      # 交互（花瓣、动画、留言板）
     ├── js/game-common.js  # 游戏公共工具（提示气泡、本地纪录）
+    ├── js/api-config.js   # ⚙️ 服务器地址配置（要改成你自己的）
+    ├── js/xixi-api.js     # 服务端客户端（登录/上报/排行，ES5 + XHR）
     ├── js/game-*.js    # 各游戏的逻辑（每个游戏一个文件，互不干扰）
     └── img/            # 图片素材
 ```
+
+## 🔐 登录、成绩与排行榜
+
+整个前端是纯静态 H5，登录和成绩走**你自己的 Go 服务端**（在 `../server/`），不依赖任何云服务 SDK。
+
+| 页面 | 作用 |
+| --- | --- |
+| `login.html` | 玩家登录，**没有注册入口** |
+| `rank.html` | 小小冠军榜，登录后才能看 |
+| `admin.html` | 管理员后台：创建用户、重置密码、查看/删除成绩 |
+
+**要改服务器地址就改这一处**：`assets/js/api-config.js` 里的 `base`。
+留空则所有云端功能自动停用，17 个游戏照常在本地玩。
+
+服务端源码和部署方法见 [`../server/README.md`](../server/README.md)。
 
 ## 怎么改内容
 

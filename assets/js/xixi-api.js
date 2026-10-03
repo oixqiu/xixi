@@ -1,0 +1,277 @@
+/* =========================================================
+   曦曦的空间 · 自建服务端客户端（纯 fetch，无需任何云 SDK）
+
+   只需在页面里引入本文件，游戏代码照旧调用：
+     XixiCloud.ready(cb)                 初始化
+     XixiCloud.me()                     当前用户 {name, role} 或 null
+     XixiCloud.signIn(user, pwd, cb)    登录
+     XixiCloud.signOut(cb)              登出
+     XixiCloud.reportBest(key, val)     成绩上报（接在 gameStore.set 上）
+     XixiCloud.fetchAllScores(cb)       拉全部成绩
+   ========================================================= */
+(function () {
+  'use strict';
+
+  var CFG = window.XIXI_API || {};
+  var BASE = (CFG.base || '').replace(/\/+$/, '');
+  var TOKEN_KEY = 'xixi-api-token';
+  var USER_KEY  = 'xixi-api-user';
+  var Q_KEY     = 'xixi-api-queue';
+
+  /* 各游戏成绩方向：small = 越小越好，big = 越大越好 */
+  var BETTER = {
+    schulte: 'small', jump: 'small', guess: 'small', mole: 'small',
+    cancel: 'small', '24': 'small',
+    rps: 'big', eggy: 'big', estimate: 'big', flash: 'big',
+    round: 'big', change: 'big', poem: 'big', angle: 'big',
+    guessangle: 'big', ratio: 'big', clock: 'big'
+  };
+  var NAMES = {
+    schulte: '舒尔特方格', jump: '跳步舒尔特', rps: '剪子包袱锤', guess: '猜数字',
+    mole: '打地鼠', eggy: '彩虹蛋蛋', estimate: '加法估算', cancel: '数字消除',
+    flash: '数字快闪', '24': '24 点', round: '凑整口算', change: '购物找零',
+    poem: '古诗填字', angle: '图形数角', guessangle: '预估角度',
+    ratio: '比例相等', clock: '认识钟表'
+  };
+
+  var state = { user: null, inited: false, readyCbs: [] };
+
+  /* ---------------- 本地存储 ---------------- */
+  function getToken() {
+    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+  }
+  function setToken(t) {
+    try {
+      if (t) localStorage.setItem(TOKEN_KEY, t);
+      else localStorage.removeItem(TOKEN_KEY);
+    } catch (e) {}
+  }
+  function getUser() {
+    try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) { return null; }
+  }
+  function setUser(u) {
+    try {
+      if (u) localStorage.setItem(USER_KEY, JSON.stringify(u));
+      else localStorage.removeItem(USER_KEY);
+    } catch (e) {}
+  }
+
+  function me() { return state.user; }
+
+  /* ---------------- fetch 封装（ES5，用 XHR 保证老内核可用） ---------------- */
+  function request(method, path, body, cb, auth) {
+    var xhr = new XMLHttpRequest();
+    var url = BASE + path;
+    xhr.open(method, url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    if (auth !== false) {
+      var t = getToken();
+      if (t) xhr.setRequestHeader('Authorization', 'Bearer ' + t);
+    }
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      var data = null;
+      try { data = JSON.parse(xhr.responseText); } catch (e) {}
+      if (!data) {
+        cb({ ok: false, msg: '服务器没返回数据（HTTP ' + xhr.status + '），检查一下服务有没有启动' });
+        return;
+      }
+      if (xhr.status >= 200 && xhr.status < 300) { cb(data); }
+      else { cb({ ok: false, msg: data.msg || ('请求失败 HTTP ' + xhr.status) }); }
+    };
+    xhr.onerror = function () {
+      cb({ ok: false, msg: '连不上服务器，请检查网络或服务器地址' });
+    };
+    xhr.send(body ? JSON.stringify(body) : null);
+  }
+
+  /* ---------------- 初始化 ---------------- */
+  function ready(cb) {
+    if (state.inited) { cb(!!state.user || !getToken()); return; }
+    state.readyCbs.push(cb);
+    if (state.inited) return;
+    state.inited = true;
+    var token = getToken();
+    if (!token) { flushCbs(true); injectBar(); return; }
+    // 校验本地 token 还有效
+    request('GET', '/api/me/scores', null, function (res) {
+      if (res.ok) {
+        state.user = getUser() || { name: '?', role: 'player' };
+        injectBar();
+        flushCbs(true);
+        flushQueue();
+      } else {
+        // token 过期，清掉当未登录
+        setToken('');
+        setUser(null);
+        state.user = null;
+        injectBar();
+        flushCbs(false);
+      }
+    });
+  }
+  function flushCbs(ok) {
+    var cbs = state.readyCbs;
+    state.readyCbs = [];
+    for (var i = 0; i < cbs.length; i++) { try { cbs[i](ok); } catch (e) {} }
+  }
+
+  /* ---------------- 登录 / 登出 ---------------- */
+  function signIn(username, password, cb) {
+    if (!BASE) { cb({ ok: false, msg: '还没配置服务器地址（XIXI_API.base）' }); return; }
+    request('POST', '/api/login', { username: username, password: password }, function (res) {
+      if (res.ok) {
+        setToken(res.token);
+        state.user = { name: res.user.username, role: res.user.role, id: res.user.id };
+        setUser(state.user);
+        updateBar();
+        flushQueue();
+        cb({ ok: true, user: state.user });
+      } else {
+        cb({ ok: false, msg: res.msg || '登录失败' });
+      }
+    }, false);
+  }
+
+  function signOut(cb) {
+    setToken('');
+    setUser(null);
+    state.user = null;
+    updateBar();
+    if (cb) cb();
+  }
+
+  /* ---------------- 成绩上报 ---------------- */
+  function queueRows(rows) {
+    try {
+      var q = JSON.parse(localStorage.getItem(Q_KEY) || '[]');
+      q = q.concat(rows).slice(-200);
+      localStorage.setItem(Q_KEY, JSON.stringify(q));
+    } catch (e) {}
+  }
+  function flushQueue() {
+    var q = [];
+    try {
+      q = JSON.parse(localStorage.getItem(Q_KEY) || '[]');
+      localStorage.removeItem(Q_KEY);
+    } catch (e) { return; }
+    if (!q.length || !state.user) return;
+    sendRows(q, function (ok) { if (!ok) queueRows(q); });
+  }
+  function sendRows(rows, cb) {
+    request('POST', '/api/scores', { rows: rows }, function (res) {
+      cb(!!res.ok);
+    });
+  }
+
+  /* 把 gameStore.set 的成绩上报服务器
+     key 形如 'xixi-schulte-best'，val 为数字或 {难度: 值} */
+  function reportBest(key, val) {
+    if (key.indexOf('xixi-') !== 0 || key.indexOf('-best') !== key.length - 5) return;
+    var gameId = key.slice(5, key.length - 5);
+    if (gameId === 'api' || gameId === 'cloud') return;
+    var better = BETTER[gameId] || 'big';
+    var gameName = NAMES[gameId] || gameId;
+    var rows = [];
+    function push(level, value) {
+      rows.push({
+        gameId: gameId, gameName: gameName, level: String(level),
+        value: value, better: better
+      });
+    }
+    if (val && typeof val === 'object') {
+      for (var k in val) {
+        if (Object.prototype.hasOwnProperty.call(val, k) && typeof val[k] === 'number') {
+          push(k, val[k]);
+        }
+      }
+    } else if (typeof val === 'number') {
+      push('default', val);
+    }
+    if (!rows.length) return;
+    if (!state.user) { queueRows(rows); return; }   // 未登录先排队，登录后补交
+    sendRows(rows, function (ok) { if (!ok) queueRows(rows); });
+  }
+
+  /* ---------------- 排行榜 ---------------- */
+  function fetchRank(gameId, cb) {
+    request('GET', '/api/rank' + (gameId ? '?gameId=' + encodeURIComponent(gameId) : ''),
+      null, function (res) {
+        if (res.ok) cb({ ok: true, groups: res.rows || [] });
+        else cb({ ok: false, msg: res.msg || '查询失败' });
+      });
+  }
+  function fetchAllScores(cb) { fetchRank('', cb); }
+
+  /* ---------------- 顶部登录小挂件 ---------------- */
+  var BAR_ID = 'xxApiBar';
+  function injectBar() {
+    if (document.getElementById(BAR_ID)) return;
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', injectBar);
+      return;
+    }
+    var style = document.createElement('style');
+    style.textContent =
+      '.xx-api-bar{position:fixed;top:8px;right:8px;z-index:9999;display:inline-block;' +
+      'font:500 13px/1 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;' +
+      'background:rgba(255,255,255,.94);color:#2f9d6d;padding:8px 13px;border-radius:999px;' +
+      'border:1px solid #bfe9d3;cursor:pointer;text-decoration:none;}' +
+      '.xx-api-bar.off{color:#c0653f;border-color:#f0c9b8;}';
+    document.head.appendChild(style);
+    var a = document.createElement('a');
+    a.id = BAR_ID;
+    a.className = 'xx-api-bar';
+    a.href = 'login.html';
+    a.addEventListener('click', function (e) {
+      if (state.user) {
+        e.preventDefault();
+        signOut(function () { location.reload(); });
+      }
+    });
+    document.body.appendChild(a);
+    updateBar();
+  }
+  function updateBar() {
+    var bar = document.getElementById(BAR_ID);
+    if (!bar) return;
+    if (state.user && state.user.name) {
+      bar.textContent = '👤 ' + state.user.name + ' · 登出';
+      bar.className = 'xx-api-bar';
+    } else {
+      bar.textContent = '👤 登录';
+      bar.className = 'xx-api-bar off';
+    }
+  }
+
+  /* ---------------- 导出 ---------------- */
+  window.XixiCloud = {
+    ready: ready,
+    me: me,
+    signIn: signIn,
+    signOut: signOut,
+    reportBest: reportBest,
+    fetchAllScores: fetchAllScores,
+    fetchRank: fetchRank,
+    flushQueue: flushQueue,
+    names: NAMES,
+    better: BETTER,
+    isAdmin: function () { return !!(state.user && state.user.role === 'admin'); },
+    apiBase: BASE
+  };
+
+  /* 接管 gameStore.set，自动上报 */
+  if (window.gameStore && window.gameStore.set) {
+    var origSet = window.gameStore.set;
+    window.gameStore.set = function (key, val) {
+      origSet(key, val);
+      try { reportBest(key, val); } catch (e) {}
+    };
+  }
+
+  /* 页面加载时挂出登录小挂件 + 恢复登录态 */
+  injectBar();
+  state.user = getUser();
+  if (getToken()) ready(function () {});
+  else updateBar();
+})();

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 ⚙️ 曦曦的空间</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%99%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+.ad-wrap{max-width:900px;margin:0 auto;}
+.ad-box{background:#fff;border-radius:22px;padding:26px 24px;box-shadow:0 10px 30px rgba(0,0,0,.08);margin-bottom:20px;}
+.ad-box h2{font-size:21px;margin:0 0 6px;color:var(--ink,#33463c);}
+.ad-box p.ad-sub{font-size:13.5px;color:var(--ink-3,#7a8a80);margin:0 0 18px;}
+.ad-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.ad-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px;}
+.ad-field label{font-size:12.5px;font-weight:700;color:var(--ink-2,#4a5b52);}
+.ad-field input,.ad-field select{padding:10px 12px;border-radius:11px;border:2px solid #d8e8de;font-size:15px;font-family:inherit;color:var(--ink,#33463c);outline:none;background:#fff;}
+.ad-field input:focus,.ad-field select:focus{border-color:#7ed6a8;}
+.ad-btn{padding:11px 20px;border:none;border-radius:12px;background:#7ed6a8;color:#fff;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.ad-btn:hover{background:#6cc797;}
+.ad-btn--sm{padding:7px 13px;font-size:13px;border-radius:10px;}
+.ad-btn--ghost{background:#fff;color:#2f9d6d;border:2px solid #bfe9d3;}
+.ad-btn--ghost:hover{background:#f2fbf6;}
+.ad-btn--danger{background:#fff;color:#c05050;border:2px solid #f0caca;}
+.ad-btn--danger:hover{background:#fdf2f2;}
+.ad-msg{min-height:20px;font-size:13.5px;font-weight:700;margin-top:10px;}
+.ad-msg.ok{color:#2f9d6d;}
+.ad-msg.err{color:#c05050;}
+.ad-table{width:100%;border-collapse:collapse;font-size:14.5px;}
+.ad-table th,.ad-table td{padding:11px 8px;text-align:left;border-bottom:1px solid #eef5f0;}
+.ad-table th{font-size:12.5px;color:var(--ink-3,#7a8a80);font-weight:700;}
+.ad-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;}
+.ad-badge--admin{background:#fff3e0;color:#c07a1a;}
+.ad-badge--player{background:#eaf7ef;color:#2f9d6d;}
+.ad-empty{text-align:center;color:var(--ink-3,#7a8a80);padding:22px 0;font-size:14px;}
+.ad-gate{max-width:400px;margin:60px auto;background:#fff;border-radius:22px;padding:32px 26px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center;}
+.ad-gate h2{font-size:22px;margin:0 0 8px;color:var(--ink,#33463c);}
+.ad-gate p{font-size:13.5px;color:var(--ink-3,#7a8a80);margin:0 0 20px;}
+.ad-note{background:#f7fbf9;border-radius:12px;padding:11px 14px;font-size:12.5px;color:var(--ink-3,#7a8a80);line-height:1.6;margin-top:14px;}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links">
+      <a href="games.html">🎮 游戏屋</a>
+      <a href="rank.html">🏅 排行榜</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="section" style="padding-top:36px;padding-bottom:60px;">
+    <div class="wrap ad-wrap">
+
+      <!-- 未登录 / 非管理员时显示这个门禁 -->
+      <div class="ad-gate" id="adGate">
+        <h2>⚙️ 管理后台</h2>
+        <p>请用管理员账号登录</p>
+        <div class="ad-field" style="text-align:left;">
+          <label for="adUser">管理员账号</label>
+          <input id="adUser" type="text" autocomplete="username" placeholder="admin">
+        </div>
+        <div class="ad-field" style="text-align:left;margin-top:12px;">
+          <label for="adPass">密码</label>
+          <input id="adPass" type="password" autocomplete="current-password" placeholder="输入密码">
+        </div>
+        <button class="ad-btn" id="adLogin" type="button" style="width:100%;margin-top:16px;">登录后台</button>
+        <p class="ad-msg" id="adGateMsg"></p>
+      </div>
+
+      <!-- 管理主界面 -->
+      <div id="adMain" style="display:none;">
+        <div class="ad-box">
+          <h2>👥 用户管理</h2>
+          <p class="ad-sub">只有在这里创建的账号才能登录游戏，没有自助注册入口</p>
+          <div class="ad-row">
+            <div class="ad-field">
+              <label for="adNewUser">用户名</label>
+              <input id="adNewUser" type="text" placeholder="只能用字母数字下划线">
+            </div>
+            <div class="ad-field">
+              <label for="adNewPass">密码</label>
+              <input id="adNewPass" type="text" placeholder="至少 4 位">
+            </div>
+            <div class="ad-field" style="max-width:130px;">
+              <label for="adNewRole">身份</label>
+              <select id="adNewRole">
+                <option value="player">普通玩家</option>
+                <option value="admin">管理员</option>
+              </select>
+            </div>
+            <button class="ad-btn" id="adAdd" type="button">+ 创建</button>
+          </div>
+          <p class="ad-msg" id="adAddMsg"></p>
+          <table class="ad-table" style="margin-top:14px;">
+            <thead><tr><th>ID</th><th>用户名</th><th>身份</th><th>创建时间</th><th style="text-align:right;">操作</th></tr></thead>
+            <tbody id="adUserRows"></tbody>
+          </table>
+        </div>
+
+        <div class="ad-box">
+          <h2>🔑 重置密码</h2>
+          <p class="ad-sub">孩子忘记密码时，在这里改一个新密码</p>
+          <div class="ad-row">
+            <div class="ad-field">
+              <label for="adRpUser">用户名</label>
+              <input id="adRpUser" type="text" placeholder="要重置的用户名">
+            </div>
+            <div class="ad-field">
+              <label for="adRpPass">新密码</label>
+              <input id="adRpPass" type="text" placeholder="至少 4 位">
+            </div>
+            <button class="ad-btn ad-btn--ghost" id="adReset" type="button">改密码</button>
+          </div>
+          <p class="ad-msg" id="adResetMsg"></p>
+        </div>
+
+        <div class="ad-box">
+          <h2>📊 最近成绩记录</h2>
+          <p class="ad-sub">最新 300 条，可单条删除</p>
+          <table class="ad-table">
+            <thead><tr><th>用户</th><th>游戏</th><th>难度</th><th>成绩</th><th>时间</th><th style="text-align:right;">操作</th></tr></thead>
+            <tbody id="adScoreRows"></tbody>
+          </table>
+          <p class="ad-empty" id="adScoreEmpty" style="display:none;">还没有成绩记录</p>
+        </div>
+
+        <div class="ad-box" style="text-align:center;">
+          <button class="ad-btn ad-btn--ghost" id="adRefresh" type="button">🔄 刷新</button>
+          <p class="ad-note">当前登录：<b id="adWho">—</b>　·　服务器：<span id="adApi">—</span><br>
+          这个页面谁都能打开，但只有管理员账号能看到上面的内容。</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/api-config.js"></script>
+<script src="assets/js/xixi-api.js"></script>
+<script>
+(function () {
+  'use strict';
+  var gate = document.getElementById('adGate');
+  var main = document.getElementById('adMain');
+  var gateMsg = document.getElementById('adGateMsg');
+  var tokenKey = 'xixi-api-token';
+
+  function api(method, path, body, cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(method, window.XIXI_API.base.replace(/\/+$/, '') + path, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    var t = localStorage.getItem(tokenKey);
+    if (t) xhr.setRequestHeader('Authorization', 'Bearer ' + t);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      var d = null;
+      try { d = JSON.parse(xhr.responseText); } catch (e) {}
+      cb(d || { ok: false, msg: '服务器没响应（HTTP ' + xhr.status + '）' });
+    };
+    xhr.onerror = function () { cb({ ok: false, msg: '连不上服务器' }); };
+    xhr.send(body ? JSON.stringify(body) : null);
+  }
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function fmtTime(ts) {
+    // 服务端可能给秒级时间戳，也可能给 RFC3339 字符串，两种都兼容
+    var d;
+    if (typeof ts === 'number') { d = new Date(ts * 1000); }
+    else { d = new Date(ts); }
+    if (isNaN(d.getTime())) { return '—'; }
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  /* ---------- 登录门禁 ---------- */
+  document.getElementById('adLogin').addEventListener('click', function () {
+    var u = document.getElementById('adUser').value.trim();
+    var p = document.getElementById('adPass').value;
+    if (!u || !p) { gateMsg.className = 'ad-msg err'; gateMsg.textContent = '账号密码都要填'; return; }
+    gateMsg.textContent = '登录中…';
+    window.XixiCloud.signIn(u, p, function (res) {
+      if (!res.ok) { gateMsg.className = 'ad-msg err'; gateMsg.textContent = res.msg; return; }
+      if (res.user.role !== 'admin') {
+        window.XixiCloud.signOut();
+        gateMsg.className = 'ad-msg err';
+        gateMsg.textContent = '这个账号不是管理员，没有后台权限';
+        return;
+      }
+      gateMsg.textContent = '';
+      enter();
+    });
+  });
+
+  function enter() {
+    gate.style.display = 'none';
+    main.style.display = 'block';
+    var me = window.XixiCloud.me();
+    document.getElementById('adWho').textContent = me ? me.name : '—';
+    document.getElementById('adApi').textContent = window.XIXI_API.base;
+    loadUsers();
+    loadScores();
+  }
+
+  /* ---------- 用户列表 ---------- */
+  function loadUsers() {
+    api('GET', '/api/admin/users', null, function (res) {
+      var tb = document.getElementById('adUserRows');
+      if (!res.ok) { tb.innerHTML = '<tr><td colspan="5" class="ad-empty">' + (res.msg || '加载失败') + '</td></tr>'; return; }
+      if (!res.users.length) { tb.innerHTML = '<tr><td colspan="5" class="ad-empty">还没有用户</td></tr>'; return; }
+      var html = '';
+      for (var i = 0; i < res.users.length; i++) {
+        var u = res.users[i];
+        var badge = u.role === 'admin'
+          ? '<span class="ad-badge ad-badge--admin">管理员</span>'
+          : '<span class="ad-badge ad-badge--player">玩家</span>';
+        html += '<tr><td>' + u.id + '</td><td><b>' + escapeHtml(u.username) + '</b></td>' +
+          '<td>' + badge + '</td><td>' + fmtTime(u.createdAt) + '</td>' +
+          '<td style="text-align:right;"><button class="ad-btn ad-btn--danger ad-btn--sm" data-del="' +
+          u.id + '">删除</button></td></tr>';
+      }
+      tb.innerHTML = html;
+      bindDel();
+    });
+  }
+  function bindDel() {
+    var btns = document.querySelectorAll('[data-del]');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function () {
+        var id = this.getAttribute('data-del');
+        if (!confirm('确定删除这个用户？他的成绩记录也会一起删掉。')) return;
+        api('DELETE', '/api/admin/users?id=' + id, null, function (res) {
+          if (!res.ok) { alert(res.msg); return; }
+          loadUsers();
+        });
+      });
+    }
+  }
+
+  /* ---------- 创建用户 ---------- */
+  document.getElementById('adAdd').addEventListener('click', function () {
+    var u = document.getElementById('adNewUser').value.trim();
+    var p = document.getElementById('adNewPass').value;
+    var r = document.getElementById('adNewRole').value;
+    var msg = document.getElementById('adAddMsg');
+    if (!u || !p) { msg.className = 'ad-msg err'; msg.textContent = '用户名和密码都要填'; return; }
+    msg.className = 'ad-msg'; msg.textContent = '创建中…';
+    api('POST', '/api/admin/users', { username: u, password: p, role: r }, function (res) {
+      if (!res.ok) { msg.className = 'ad-msg err'; msg.textContent = res.msg; return; }
+      msg.className = 'ad-msg ok'; msg.textContent = '✅ 用户 ' + u + ' 创建好了';
+      document.getElementById('adNewUser').value = '';
+      document.getElementById('adNewPass').value = '';
+      loadUsers();
+    });
+  });
+
+  /* ---------- 重置密码 ---------- */
+  document.getElementById('adReset').addEventListener('click', function () {
+    var u = document.getElementById('adRpUser').value.trim();
+    var p = document.getElementById('adRpPass').value;
+    var msg = document.getElementById('adResetMsg');
+    if (!u || !p) { msg.className = 'ad-msg err'; msg.textContent = '用户名和新密码都要填'; return; }
+    api('POST', '/api/admin/password', { username: u, password: p }, function (res) {
+      if (!res.ok) { msg.className = 'ad-msg err'; msg.textContent = res.msg; return; }
+      msg.className = 'ad-msg ok'; msg.textContent = '✅ ' + u + ' 的密码已改成 ' + p;
+      document.getElementById('adRpPass').value = '';
+    });
+  });
+
+  /* ---------- 成绩记录 ---------- */
+  function loadScores() {
+    api('GET', '/api/admin/scores', null, function (res) {
+      var tb = document.getElementById('adScoreRows');
+      var empty = document.getElementById('adScoreEmpty');
+      if (!res.ok) { tb.innerHTML = '<tr><td colspan="6" class="ad-empty">' + (res.msg || '加载失败') + '</td></tr>'; return; }
+      if (!res.rows.length) { tb.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      var html = '';
+      for (var i = 0; i < res.rows.length && i < 60; i++) {
+        var r = res.rows[i];
+        var unit = r.better === 'small' ? '秒' : '分';
+        var lv = r.level === 'default' ? '—' : r.level;
+        html += '<tr><td>' + escapeHtml(r.username) + '</td><td>' + escapeHtml(r.gameName) + '</td>' +
+          '<td>' + lv + '</td><td><b>' + r.value + '</b> ' + unit + '</td>' +
+          '<td>' + fmtTime(r.createdAt) + '</td>' +
+          '<td style="text-align:right;"><button class="ad-btn ad-btn--danger ad-btn--sm" data-dels="' +
+          r.id + '">删除</button></td></tr>';
+      }
+      tb.innerHTML = html;
+      var sbtns = document.querySelectorAll('[data-dels]');
+      for (var j = 0; j < sbtns.length; j++) {
+        sbtns[j].addEventListener('click', function () {
+          var id = this.getAttribute('data-dels');
+          if (!confirm('删除这条成绩记录？')) return;
+          api('DELETE', '/api/admin/scores?id=' + id, null, function (res2) {
+            if (!res2.ok) { alert(res2.msg); return; }
+            loadScores();
+          });
+        });
+      }
+    });
+  }
+
+  document.getElementById('adRefresh').addEventListener('click', function () { loadUsers(); loadScores(); });
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ---------- 已登录的管理员直接进 ---------- */
+  window.XixiCloud.ready(function (ok) {
+    var me = window.XixiCloud.me();
+    if (ok && me && me.role === 'admin') enter();
+  });
+})();
+</script>
+</body>
+</html>
