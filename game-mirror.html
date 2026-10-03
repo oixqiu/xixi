@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>光的反射 🪞 曦曦的游戏屋</title>
+<meta name="description" content="平面镜怎么反射光？入射角等于反射角——用四个角度找出真正的反射光线，练出光的方向感！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AA%9E%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* 光的反射专属 */
+.mi-stage{display:flex;justify-content:center;margin:2px 0 14px;}
+.mi-stage svg{width:100%;max-width:380px;height:auto;display:block;}
+.mi-opts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.mi-opt{min-width:74px;padding:11px 10px;border-radius:14px;border:2px solid #bfe0f5;
+  background:#fff;font-size:16px;font-weight:800;color:#33463c;cursor:pointer;
+  transition:transform .15s ease;}
+.mi-opt:hover{transform:translateY(-2px);border-color:#7cc0e8;}
+.mi-opt:active{transform:scale(.95);}
+.mi-opt.is-ok{background:#7cc0e8;color:#fff;border-color:#5aa8d8;}
+.mi-opt.is-bad{background:#ffd6d6;color:#a33a3a;border-color:#f0a2a2;}
+.mi-opt.is-dim{opacity:.35;}
+.mi-fb{text-align:center;font-size:15px;font-weight:700;color:#4a5b52;min-height:24px;margin:10px 0 4px;}
+.mi-rule{text-align:center;font-size:14px;font-weight:700;color:#4a8fb5;margin:0 0 8px;min-height:20px;}
+.mi-next{display:block;margin:0 auto 6px;}
+.mi-next.is-hide{visibility:hidden;}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🪞 Game · 光的反射</p>
+      <h1 class="ghero__title reveal">光的反射</h1>
+      <p class="ghero__sub reveal">镜子会把光弹回来！<strong>反射角 = 入射角</strong>——看准镜子，哪一条才是被弹出去的光？</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+        <div class="sg-stats" style="justify-content:center;">
+          <span class="sg-stat">📋 第 <b id="miNo">—</b> / 10 题</span>
+          <span class="sg-stat">⭐ 答对 <b id="miScore">0</b></span>
+          <span class="sg-stat">🌟 最佳 <b id="miBest">—</b></span>
+        </div>
+
+        <div class="mi-stage" id="miStage" aria-live="polite">
+          <p class="sg-placeholder">点下面的按钮开始吧～ 🪞</p>
+        </div>
+
+        <p class="mi-rule" id="miRule"></p>
+        <div class="mi-opts" id="miOpts"></div>
+        <p class="mi-fb" id="miFb"></p>
+        <button class="btn btn--primary mi-next" id="miNext" type="button">开始 ▶</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <h2 class="section__title reveal">怎么玩 · 玩法说明</h2>
+      <div class="rules reveal">
+        <ol>
+          <li>屏幕上有一面<strong>水平的镜子</strong>，一束光从上面斜斜地射向镜面。</li>
+          <li>镜子会把光<strong>原路对称地弹回去</strong>，这叫反射。</li>
+          <li>镜面上画了<strong>一条法线</strong>（垂直于镜面的那条虚线）。</li>
+          <li><strong>反射角 = 入射角</strong>——光和法线夹的角度，入射和反射两边一样大。</li>
+          <li>在四个角度里，选出<strong>真正被弹出去的那束光</strong>。</li>
+          <li>一轮 <b>10 题</b>，<b>最佳成绩</b>自动保存！</li>
+          <li class="rules-tip">💡 小秘诀：先在脑子里把镜子沿着法线「翻」过去，入射光翻过去就是反射光啦！法线是这道题的万能钥匙。</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/api-config.js"></script>
+<script src="assets/js/xixi-api.js"></script>
+<script src="assets/js/game-mirror.js"></script>
+</body>
+</html>

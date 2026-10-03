@@ -29,6 +29,8 @@
 ├── game-poem.html      # 古诗填字
 ├── game-angle.html     # 图形数角
 ├── game-guessangle.html # 预估角度（凭感觉猜度数）
+├── game-clock.html     # 认识钟表（数字时间找钟面）
+├── game-mirror.html    # 光的反射（反射角 = 入射角）
 ├── login.html          # 🔐 登录（账号由管理员创建）
 ├── rank.html           # 🏅 小小冠军榜
 ├── admin.html          # ⚙️ 管理后台（建用户、改密码、查成绩）
