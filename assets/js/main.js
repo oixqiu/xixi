@@ -113,16 +113,17 @@
     toastTimer = setTimeout(function () { toast.classList.remove('is-on'); }, 2600);
   }
 
-  /* ---------- 7. 留言板（存在浏览器本地） ---------- */
+  /* ---------- 7. 留言板（存在服务器上，本地只做离线兜底） ---------- */
   var form = document.getElementById('msgForm');
   var list = document.getElementById('msgList');
-  var KEY = 'xixi-garden-messages';
+  var tip  = document.getElementById('msgTip');
+  var KEY = 'xixi-garden-messages';   // 离线兜底用，服务器正常时不会读它
 
-  function loadMsgs() {
+  function loadLocal() {
     try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
     catch (e) { return []; }
   }
-  function saveMsgs(arr) {
+  function saveLocal(arr) {
     try { localStorage.setItem(KEY, JSON.stringify(arr.slice(-40))); }
     catch (e) { /* 隐私模式下忽略 */ }
   }
@@ -131,13 +132,45 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function render() {
+  function ago(ts) {
+    var d = Math.floor((Date.now() - ts * 1000) / 1000);
+    if (d < 60) return '刚刚';
+    if (d < 3600) return Math.floor(d / 60) + ' 分钟前';
+    if (d < 86400) return Math.floor(d / 3600) + ' 小时前';
+    if (d < 86400 * 30) return Math.floor(d / 86400) + ' 天前';
+    return '';
+  }
+  function paint(rows) {
     if (!list) return;
-    var arr = loadMsgs();
-    list.innerHTML = arr.slice().reverse().map(function (m) {
-      return '<li class="msg__item"><p class="msg__who">' + esc(m.name) +
-             '</p><p class="msg__what">' + esc(m.text) + '</p></li>';
-    }).join('');
+    if (!rows.length) {
+      list.innerHTML = '<li class="msg__item"><p class="msg__what">还没有人留言，来当第一个吧 🌷</p></li>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < rows.length; i++) {
+      var m = rows[i];
+      html += '<li class="msg__item"><p class="msg__who">' + esc(m.name) +
+              '<span class="msg__time">' + esc(ago(m.at)) + '</span></p>' +
+              '<p class="msg__what">' + esc(m.text) + '</p></li>';
+    }
+    list.innerHTML = html;
+  }
+
+  // 从服务器拉；失败就退回本地缓存，保证离线时页面不空
+  function loadMsgs() {
+    if (!window.XixiCloud || !window.XixiCloud.fetchMessages) {
+      paint(loadLocal().slice().reverse());
+      return;
+    }
+    window.XixiCloud.fetchMessages(function (res) {
+      if (res && res.ok && res.rows) {
+        if (tip) tip.textContent = '大家都看得到你的话哦 🌸';
+        paint(res.rows);
+      } else {
+        if (tip) tip.textContent = '暂时连不上服务器，先看看本机保存的留言吧';
+        paint(loadLocal().slice().reverse());
+      }
+    });
   }
 
   if (form) {
@@ -153,15 +186,102 @@
         textEl.focus();
         return;
       }
-      var arr = loadMsgs();
-      arr.push({ name: name.slice(0, 20), text: text.slice(0, 200), at: Date.now() });
-      saveMsgs(arr);
-      render();
+
+      // 先本地存一份并立刻显示 —— 不管服务器通不通，用户马上能看到自己那条
+      var local = loadLocal();
+      local.push({ name: name.slice(0, 20), text: text.slice(0, 200), at: Math.floor(Date.now() / 1000) });
+      saveLocal(local);
       form.reset();
       say('谢谢你的留言，花园收到啦 💐');
+
+      if (!window.XixiCloud || !window.XixiCloud.postMessage) {
+        paint(local.slice().reverse());
+        return;
+      }
+      window.XixiCloud.postMessage(name.slice(0, 20), text.slice(0, 200), function (res) {
+        if (res && res.ok) {
+          // 提交成功，拉一次服务器的最新列表
+          loadMsgs();
+        } else {
+          if (tip) tip.textContent = (res && res.msg) ? res.msg : '暂时发不上去，已经存在本机了';
+          paint(local.slice().reverse());
+        }
+      });
     });
-    render();
+    loadMsgs();
   }
+
+  /* ---------- 7b. 小日记（读服务器，登录后可写） ---------- */
+  var diaryList = document.getElementById('diaryList');
+  var diaryHint = document.getElementById('diaryHint');
+
+  // 曦曦自己的日记，内容写在代码里 —— 站点主人，想换就改这里
+  var SEED_DIARY = [
+    { mood: '😊', date: '5 月 12 日', text: '今天在阳台上种了一颗小种子，我给它取名「小绿」。希望它快快长大，比我还高！', tag: '种植物' },
+    { mood: '🥰', date: '5 月 20 日', text: '美术老师说我的画有进步，还把我的画贴在了墙上。我偷偷开心了一整天。', tag: '画画' },
+    { mood: '🎉', date: '6 月 1 日',  text: '儿童节！和好朋友一起去公园，吃了两个冰淇淋，还追了三只蝴蝶。', tag: '儿童节' }
+  ];
+
+  function fmtDate(unixSec) {
+    var d = new Date(unixSec * 1000);
+    return (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日';
+  }
+
+  function diaryCard(it) {
+    // 内置日记带 date 字段（曦曦自己写的），用户日记只有 at（时间戳）
+    var dateTxt = it.date || (it.at ? fmtDate(it.at) : '');
+    var who = it.date ? '' :
+      '<p class="diary__who' + (it.mine ? ' diary__who--mine' : '') + '">' +
+      esc(it.name || '神秘的朋友') + (it.mine ? '（我）' : '') + '</p>';
+    return '<article class="diary reveal">' +
+      '<div class="diary__top"><span class="diary__date">' + esc(dateTxt) + '</span>' +
+      '<span class="diary__mood">' + esc(it.mood || '😊') + '</span></div>' +
+      who +
+      (it.title ? '<h3 class="diary__title">' + esc(it.title) + '</h3>' : '') +
+      '<p class="diary__txt">' + esc(it.text) + '</p>' +
+      (it.tag ? '<p class="diary__tag"># ' + esc(it.tag) + '</p>' : '') +
+      '</article>';
+  }
+
+  function loadDiary() {
+    if (!diaryList) return;
+    if (!window.XixiCloud || !window.XixiCloud.fetchDiary) {
+      // 没挂上 API（比如离线打开 file://）时，退回内置日记
+      var fb = '';
+      for (var j = 0; j < SEED_DIARY.length; j++) fb += diaryCard(SEED_DIARY[j]);
+      diaryList.innerHTML = fb;
+      return;
+    }
+    window.XixiCloud.fetchDiary(function (res) {
+      var rows = (res && res.ok && res.rows) ? res.rows : [];
+      var html = '';
+      var n = Math.min(rows.length, 6);
+      for (var i = 0; i < n; i++) html += diaryCard(rows[i]);
+      if (!n) {
+        for (var j = 0; j < SEED_DIARY.length; j++) html += diaryCard(SEED_DIARY[j]);
+      }
+      diaryList.innerHTML = html;
+
+      if (diaryHint) {
+        if (window.XixiCloud.me()) {
+          diaryHint.innerHTML = '想写今天的日记吗？<a class="diary__more" href="diary.html">去日记墙写一篇 →</a>';
+        } else {
+          diaryHint.innerHTML = '登录之后就能在这里写自己的小日记啦 ✏️ ' +
+            '<a class="diary__more" href="login.html">去登录 →</a>';
+        }
+      }
+      // 动态插入的内容也要触发入场动画
+      if (!reduceMotion && window.IntersectionObserver) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (en) {
+            if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
+          });
+        }, { threshold: 0.12 });
+        Array.prototype.forEach.call(diaryList.querySelectorAll('.reveal'), function (el) { io.observe(el); });
+      }
+    });
+  }
+  loadDiary();
 
   /* ---------- 8. 小彩蛋：点击标题冒花 ---------- */
   if (!reduceMotion) {

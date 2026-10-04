@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script>
+/* 强制 HTTPS：http 进来立刻换成 https，否则登录会失败 */
+(function(){var l=window.location;if(l.protocol!=="http:")return;var h=l.hostname;
+if(h==="localhost"||h==="0.0.0.0"||h==="::1"||/^\d+\.\d+\.\d+\.\d+$/.test(h)||h.slice(-6)===".local")return;
+l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小日记墙 ✏️ 曦曦的空间</title>
+<meta name="description" content="小日记墙 —— 登录后就能写下今天的心情，和大家分享你的小日子。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%9F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+/* ===== 日记墙专属样式（沿用首页日记卡片观感） ===== */
+.dw-write{
+  max-width:640px;margin:0 auto 30px;background:var(--paper,#fff);border-radius:22px;
+  padding:24px 22px;box-shadow:var(--sh-md,0 10px 30px rgba(0,0,0,.08));
+}
+.dw-write h3{margin:0 0 4px;font-size:19px;color:var(--ink,#33463c);}
+.dw-sub{margin:0 0 16px;font-size:13.5px;color:var(--ink-3,#7a8a80);}
+.dw-moods{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.dw-mood{width:44px;height:44px;border-radius:50%;border:2.5px solid #e4f0e9;background:#fff;
+  font-size:21px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:transform .15s,border-color .15s;font-family:inherit;}
+.dw-mood:hover{transform:scale(1.12) rotate(-6deg);}
+.dw-mood.is-on{border-color:#7ed6a8;background:#f2fbf6;transform:scale(1.1);}
+.dw-field{width:100%;border:2px solid #e4f0e9;border-radius:14px;padding:12px 14px;
+  font-size:15px;font-family:inherit;color:var(--ink,#33463c);background:#fff;
+  transition:border-color .15s;}
+.dw-field:focus{outline:none;border-color:#7ed6a8;}
+.dw-field--title{margin-bottom:10px;font-weight:700;}
+.dw-field--text{resize:vertical;min-height:104px;line-height:1.7;}
+.dw-count{text-align:right;font-size:12px;color:var(--ink-3,#9ab0a3);margin:5px 0 14px;}
+.dw-count.is-warn{color:#e8894a;font-weight:800;}
+.dw-btn{width:100%;}
+.dw-gate{text-align:center;padding:30px 20px;}
+.dw-gate p{margin:0 0 8px;font-size:15px;color:var(--ink-2,#4a5b52);}
+.dw-gate a{color:#2f9d6d;font-weight:800;}
+.dw-status{text-align:center;font-size:14.5px;font-weight:700;min-height:22px;margin:0 0 18px;
+  color:var(--ink-2,#4a5b52);}
+.dw-status.is-err{color:#d9634f;}
+
+/* 作者筛选条 */
+.dw-filters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:22px;}
+.dw-chip{padding:7px 14px;border-radius:999px;border:2px solid #d8e8de;background:#fff;
+  font-size:13.5px;font-weight:800;color:var(--ink-2,#4a5b52);cursor:pointer;font-family:inherit;
+  transition:background .15s,border-color .15s;}
+.dw-chip.is-on{background:#7ed6a8;border-color:#7ed6a8;color:#fff;}
+
+/* 日记墙卡片里的作者行 */
+.diary__who{margin:0 0 7px;font-size:12.5px;font-weight:800;color:#9ab0a3;letter-spacing:.02em;}
+.diary__who--mine{color:#2f9d6d;}
+.diary__title{margin:0 0 6px;font-size:16px;font-weight:800;color:var(--ink,#33463c);line-height:1.4;}
+.diary__more{color:#2f9d6d;font-weight:800;text-decoration:none;margin-left:6px;}
+.diary__more:hover{text-decoration:underline;}
+
+/* 空状态 */
+.dw-empty{text-align:center;font-size:15px;color:var(--ink-3,#7a8a80);padding:40px 20px;}
+.dw-empty span{display:block;font-size:38px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="index.html#diary">小日记</a>
+      <a href="rank.html">🏅 排行榜</a>
+      <a href="games.html">🎮 游戏屋</a>
+      <a href="diary.html" class="is-active" aria-current="page">✏️ 日记墙</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="section section--tint" style="padding-top:36px;padding-bottom:70px;">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">My Diary</p>
+        <h2 class="sec-head__title">✏️ 小日记墙</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🌸</em><span></span></div>
+      </header>
+
+      <!-- 未登录时显示引导 -->
+      <div class="dw-write reveal dw-gate" id="gate" style="display:none;">
+        <span style="font-size:40px;">🔒</span>
+        <p>写日记要用自己的小账号哦，先登录一下吧～</p>
+        <p><a href="login.html">去登录 →</a></p>
+      </div>
+
+      <!-- 登录后的写作区 -->
+      <div class="dw-write reveal" id="writer" style="display:none;">
+        <h3>写下今天的心情</h3>
+        <p class="dw-sub">只有登录的朋友才能写，放心写吧 🌷</p>
+
+        <div class="dw-moods" id="moods" role="group" aria-label="选一个心情"></div>
+
+        <input type="text" class="dw-field dw-field--title" id="diaryTitle"
+               placeholder="给这篇日记起个标题（可以不写）" maxlength="40">
+        <textarea class="dw-field dw-field--text" id="diaryText" rows="5"
+                  placeholder="今天发生了什么呀…" maxlength="600"></textarea>
+        <p class="dw-count" id="count">0 / 600</p>
+
+        <button class="btn btn--primary dw-btn" id="submitBtn" type="button">贴进日记墙 🌷</button>
+        <p class="dw-status" id="status"></p>
+      </div>
+
+      <div class="dw-filters" id="filters" style="display:none;"></div>
+      <div class="grid grid--diary" id="list"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <p class="footer__name">✏️ 曦曦的小日记</p>
+    <p class="footer__line">每天一点点，加起来就是一整年。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 亲手种下的小花园</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/api-config.js"></script>
+<script src="assets/js/xixi-api.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var MOODS = ['😊', '🥰', '😆', '😢', '😡', '😴', '🤔', '😱', '🎉', '🥺', '😌', '🙌'];
+
+  var gateEl    = document.getElementById('gate');
+  var writerEl  = document.getElementById('writer');
+  var moodsEl   = document.getElementById('moods');
+  var titleEl   = document.getElementById('diaryTitle');
+  var textEl    = document.getElementById('diaryText');
+  var countEl   = document.getElementById('count');
+  var btnEl     = document.getElementById('submitBtn');
+  var statusEl  = document.getElementById('status');
+  var filtersEl = document.getElementById('filters');
+  var listEl    = document.getElementById('list');
+
+  var mood = '😊';
+  var rows = [];          // 全部日记，内存里留着做筛选
+  var filter = '';        // '' = 全部，否则是作者 username
+  var myName = '';        // 登录后的真名
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtDate(unixSec) {
+    var d = new Date(unixSec * 1000);
+    return (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日';
+  }
+  function say(text, isErr) {
+    if (!statusEl) return;
+    statusEl.textContent = text || '';
+    statusEl.classList.toggle('is-err', !!isErr);
+  }
+
+  /* ---------- 心情选择器 ---------- */
+  function buildMoods() {
+    var html = '';
+    for (var i = 0; i < MOODS.length; i++) {
+      html += '<button type="button" class="dw-mood' + (MOODS[i] === mood ? ' is-on' : '') +
+              '" data-m="' + MOODS[i] + '" aria-label="心情 ' + MOODS[i] + '">' + MOODS[i] + '</button>';
+    }
+    moodsEl.innerHTML = html;
+  }
+  moodsEl.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.dw-mood') : null;
+    if (!b) return;
+    mood = b.getAttribute('data-m');
+    var all = moodsEl.querySelectorAll('.dw-mood');
+    for (var i = 0; i < all.length; i++) {
+      all[i].classList.toggle('is-on', all[i] === b);
+    }
+  });
+
+  /* ---------- 字数统计 ---------- */
+  function syncCount() {
+    var n = textEl.value.length;
+    countEl.textContent = n + ' / 600';
+    countEl.classList.toggle('is-warn', n > 540);
+  }
+  textEl.addEventListener('input', syncCount);
+
+  /* ---------- 渲染 ---------- */
+  function card(it) {
+    // at 缺失时别格式化出 NaN，直接留空
+    var dateTxt = it.at ? fmtDate(it.at) : '';
+    var who = '<p class="diary__who' + (it.mine ? ' diary__who--mine' : '') + '">' +
+              esc(it.name || '神秘的朋友') + (it.mine ? '（我）' : '') + '</p>';
+    return '<article class="diary reveal is-in">' +
+      '<div class="diary__top"><span class="diary__date">' + esc(dateTxt) + '</span>' +
+      '<span class="diary__mood">' + esc(it.mood || '😊') + '</span></div>' +
+      who +
+      (it.title ? '<h3 class="diary__title">' + esc(it.title) + '</h3>' : '') +
+      '<p class="diary__txt">' + esc(it.text) + '</p>' +
+      '</article>';
+  }
+
+  function paint() {
+    var show = filter ? rows.filter(function (r) { return r.username === filter; }) : rows;
+    if (!show.length) {
+      listEl.innerHTML = '<div class="dw-empty" style="grid-column:1/-1;"><span>🌱</span>' +
+        '还没有人写过日记，来当第一个吧！</div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < show.length; i++) html += card(show[i]);
+    listEl.innerHTML = html;
+  }
+
+  /* ---------- 作者筛选条 ---------- */
+  function paintFilters() {
+    var byUser = {};
+    var order = [];
+    for (var i = 0; i < rows.length; i++) {
+      var u = rows[i].username;
+      if (!byUser[u]) { byUser[u] = { name: rows[i].name, n: 0, mine: false }; order.push(u); }
+      byUser[u].n++;
+      if (rows[i].mine) byUser[u].mine = true;
+    }
+    if (order.length < 2) { filtersEl.style.display = 'none'; return; }  // 只有一个人写就不用筛了
+
+    var html = '<button type="button" class="dw-chip' + (filter ? '' : ' is-on') +
+               '" data-u="">全部 ' + rows.length + '</button>';
+    for (var j = 0; j < order.length; j++) {
+      var u = order[j];
+      var label = byUser[u].mine ? '我' : byUser[u].name;
+      html += '<button type="button" class="dw-chip' + (filter === u ? ' is-on' : '') +
+              '" data-u="' + esc(u) + '">' + esc(label) + ' ' + byUser[u].n + '</button>';
+    }
+    filtersEl.innerHTML = html;
+    filtersEl.style.display = '';
+  }
+  filtersEl.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.dw-chip') : null;
+    if (!b) return;
+    filter = b.getAttribute('data-u');
+    paintFilters();
+    paint();
+  });
+
+  /* ---------- 拉数据 ---------- */
+  function load() {
+    if (!window.XixiCloud || !window.XixiCloud.fetchDiary) {
+      listEl.innerHTML = '<div class="dw-empty" style="grid-column:1/-1;"><span>📡</span>' +
+        '连不上服务器，先检查一下网络吧</div>';
+      return;
+    }
+    window.XixiCloud.fetchDiary(function (res) {
+      if (!res || !res.ok) {
+        listEl.innerHTML = '<div class="dw-empty" style="grid-column:1/-1;"><span>📡</span>' +
+          '日记暂时读不出来，等会儿再试试吧</div>';
+        return;
+      }
+      rows = res.rows || [];
+      // 「我」的筛选默认指向本人，避免刚写完还要手动点
+      if (!filter && myName) {
+        for (var i = 0; i < rows.length; i++) {
+          if (rows[i].mine) { filter = rows[i].username; break; }
+        }
+      }
+      paintFilters();
+      paint();
+    });
+  }
+
+  /* ---------- 提交 ---------- */
+  btnEl.addEventListener('click', function () {
+    var text = (textEl.value || '').trim();
+    var title = (titleEl.value || '').trim();
+    if (!text) {
+      say('先写点什么再贴上去吧 🌱', true);
+      textEl.focus();
+      return;
+    }
+    btnEl.disabled = true;
+    say('正在贴上去…');
+    window.XixiCloud.postDiary(mood, title, text, function (res) {
+      btnEl.disabled = false;
+      if (!res || !res.ok) {
+        say((res && res.msg) || '贴不上去，检查一下网络再试一次', true);
+        return;
+      }
+      textEl.value = '';
+      titleEl.value = '';
+      syncCount();
+      say('贴好啦！谢谢你写下今天 🌷');
+      // 服务端只是「已入队」，真值以列表为准 —— 直接重拉一次，
+      // 待落盘的那条在读接口里也能看到，所以会立刻出现在最前面。
+      load();
+    });
+  });
+
+  /* ---------- 启动 ---------- */
+  window.XixiCloud.ready(function (ok) {
+    var m = ok ? window.XixiCloud.me() : null;
+    if (m) {
+      // 服务端只返回 username（本站用用户名做显示名），没有 name 字段时回退
+      myName = m.name || m.username || '我';
+      gateEl.style.display = 'none';
+      writerEl.style.display = '';
+      buildMoods();
+      syncCount();
+    } else {
+      writerEl.style.display = 'none';
+      gateEl.style.display = '';
+    }
+    load();
+  });
+})();
+</script>
+</body>
+</html>

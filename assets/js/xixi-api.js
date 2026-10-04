@@ -296,6 +296,30 @@
     return '⭐' + chars[chars.length - 1];
   }
 
+  /* ---------------- 留言板 + 小日记 ---------------- */
+
+  // 提交留言（免登录）。服务器不通时回调 ok:false，调用方负责本地兜底。
+  function postMessage(name, text, cb) {
+    request('POST', '/api/messages', { name: name, text: text }, function (res) {
+      cb(res);
+    }, false);   // false = 不带 Authorization，留言允许匿名
+  }
+
+  // 拉留言（公开）
+  function fetchMessages(cb) {
+    request('GET', '/api/messages', null, cb, false);
+  }
+
+  // 写日记（必须登录，服务端会校验 token）
+  function postDiary(mood, title, text, cb) {
+    request('POST', '/api/diary', { mood: mood, title: title, text: text }, cb);
+  }
+
+  // 拉日记（公开；带 token 时自己的日记显示真名）
+  function fetchDiary(cb) {
+    request('GET', '/api/diary', null, cb);
+  }
+
   /* ---------------- 导出 ---------------- */
   window.XixiCloud = {
     ready: ready,
@@ -308,6 +332,10 @@
     flushQueue: flushQueue,
     ping: ping,
     maskName: maskName,
+    postMessage: postMessage,
+    fetchMessages: fetchMessages,
+    postDiary: postDiary,
+    fetchDiary: fetchDiary,
     names: NAMES,
     better: BETTER,
     isAdmin: function () { return !!(state.user && state.user.role === 'admin'); },

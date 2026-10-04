@@ -36,6 +36,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
       <a href="#hobby">我的爱好</a>
       <a href="#album">小相册</a>
       <a href="#diary">小日记</a>
+      <a href="diary.html">✏️ 日记墙</a>
       <a href="#dream">我的梦想</a>
       <a href="rank.html">🏅 排行榜</a>
       <a href="admin.html">⚙️ 后台</a>
@@ -217,34 +218,20 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
         <div class="sec-head__line" aria-hidden="true"><span></span><em>✏️</em><span></span></div>
       </header>
 
-      <div class="grid grid--diary">
+      <div class="grid grid--diary" id="diaryList">
         <article class="diary reveal">
           <div class="diary__top">
-            <span class="diary__date">5 月 12 日</span>
-            <span class="diary__mood">😊</span>
+            <span class="diary__date">载入中…</span>
+            <span class="diary__mood">✏️</span>
           </div>
-          <p class="diary__txt">今天在阳台上种了一颗小种子，我给它取名「小绿」。希望它快快长大，比我还高！</p>
-          <p class="diary__tag"># 种植物</p>
-        </article>
-        <article class="diary reveal">
-          <div class="diary__top">
-            <span class="diary__date">5 月 20 日</span>
-            <span class="diary__mood">🥰</span>
-          </div>
-          <p class="diary__txt">美术老师说我的画有进步，还把我的画贴在了墙上。我偷偷开心了一整天。</p>
-          <p class="diary__tag"># 画画</p>
-        </article>
-        <article class="diary reveal">
-          <div class="diary__top">
-            <span class="diary__date">6 月 1 日</span>
-            <span class="diary__mood">🎉</span>
-          </div>
-          <p class="diary__txt">儿童节！和好朋友一起去公园，吃了两个冰淇淋，还追了三只蝴蝶。</p>
-          <p class="diary__tag"># 儿童节</p>
+          <p class="diary__txt">正在打开小日记本…</p>
         </article>
       </div>
 
-      <p class="diary__hint reveal">在 <code>index.html</code> 里找到 <code>小日记</code> 那一段，就能写下今天的心情啦 ✏️</p>
+      <p class="diary__hint reveal" id="diaryHint">
+        登录之后就能在这里写自己的小日记啦 ✏️
+        <a class="diary__more" href="diary.html">去日记墙看看 →</a>
+      </p>
     </div>
   </section>
 
@@ -283,7 +270,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
           <textarea id="msgText" rows="4" placeholder="想对我说点什么～" maxlength="200"></textarea>
         </div>
         <button class="btn btn--primary msg__btn" type="submit">把话放进花园 💐</button>
-        <p class="msg__tip">留言会保存在你的浏览器里，只有你能看到 🌷</p>
+        <p class="msg__tip" id="msgTip">正在连上花园…</p>
       </form>
 
       <ul class="msg__list" id="msgList"></ul>
@@ -305,6 +292,8 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 
 <button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
 
+<script src="assets/js/api-config.js"></script>
+<script src="assets/js/xixi-api.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>
