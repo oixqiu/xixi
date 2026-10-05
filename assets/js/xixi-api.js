@@ -289,10 +289,13 @@
     if (!u) return '⭐';
     var chars = Array.from ? Array.from(u) : u.split('');
     if (chars.length === 1) return '⭐' + chars[0];
-    // 中文名取最后一个字；纯拼音/英文名取最后一个字符
-    for (var i = 0; i < chars.length; i++) {
+    // 中文名取**最后一个**字 —— 必须和服务端 maskName 保持一致。
+    // 「同学2」的汉字有「同」「学」，取第一个会变成 ⭐同，
+    // 孩子名字里常有「同学」「老师」这类前缀，会大面积撞名。
+    for (var i = chars.length - 1; i >= 0; i--) {
       if (chars[i].charCodeAt(0) > 0x2E80) return '⭐' + chars[i];
     }
+    // 纯拼音/英文名：取最后一个字符
     return '⭐' + chars[chars.length - 1];
   }
 

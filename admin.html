@@ -93,11 +93,11 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
       <div id="adMain" style="display:none;">
         <div class="ad-box">
           <h2>👥 用户管理</h2>
-          <p class="ad-sub">只有在这里创建的账号才能登录游戏，没有自助注册入口</p>
+          <p class="ad-sub">只有在这里创建的账号才能登录游戏，没有自助注册入口<br>用户名可以用中文（2~12 个字），也可以用字母数字下划线短横线</p>
           <div class="ad-row">
             <div class="ad-field">
               <label for="adNewUser">用户名</label>
-              <input id="adNewUser" type="text" placeholder="只能用字母数字下划线">
+              <input id="adNewUser" type="text" placeholder="可以用中文，比如 小明" maxlength="12">
             </div>
             <div class="ad-field">
               <label for="adNewPass">密码</label>
