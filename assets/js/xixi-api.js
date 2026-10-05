@@ -193,10 +193,22 @@
   }
 
   /* 把 gameStore.set 的成绩上报服务器
-     key 形如 'xixi-schulte-best'，val 为数字或 {难度: 值} */
+     key 形如 'xixi-schulte-best'，val 为数字或 {难度: 值}
+
+     注意：game-rps 用的 key 是 'xixi-rps-beststreak'（连胜），
+     早期版本这里只认 '-best' 结尾，导致剪子包袱锤的成绩从来没上报过、
+     排行榜一直是空的。所以要同时认这两个后缀。
+     后缀长度用 S_XXX.length 取，别手写数字 —— '-beststreak' 是 11 个字符，
+     写成 10 会 slice 出 'beststreak'（少了连字符）从而永远匹配不上。 */
+  var S_BEST = '-best';
+  var S_STREAK = '-beststreak';
   function reportBest(key, val) {
-    if (key.indexOf('xixi-') !== 0 || key.indexOf('-best') !== key.length - 5) return;
-    var gameId = key.slice(5, key.length - 5);
+    if (key.indexOf('xixi-') !== 0) return;
+    var suffix = null;
+    if (key.slice(-S_BEST.length) === S_BEST) suffix = S_BEST.length;
+    else if (key.slice(-S_STREAK.length) === S_STREAK) suffix = S_STREAK.length;
+    if (suffix === null) return;
+    var gameId = key.slice(5, key.length - suffix);
     if (gameId === 'api' || gameId === 'cloud') return;
     var better = BETTER[gameId] || 'big';
     var gameName = NAMES[gameId] || gameId;
