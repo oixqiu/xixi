@@ -1,8 +1,20 @@
 /* =========================================================
    曦曦的游戏屋 · 古诗填字
-   规则：名句先闪现（难度决定时长）→ 挖掉 2 个字 →
+   规则：名句先闪现（难度决定时长）→ 挖掉 2 个字（按从左到右 ①② 顺序填）→
         逐空从 4 个候选字里选对的。一轮 8 句。
         诗库全部来自小学课本，逐句校对过。
+
+   计分（时间加权）：
+     综合分 = 答对句数 × 1000 + 速度分（0~999）
+     速度分 = round(999 × 平均速度比)，平均速度比 = 答对各句速度比的平均
+     单句速度比 = 1 − 用时 / 参考用时（用时 ≥ 参考用时则为 0）
+     参考用时 = 该句字数 × 1.8 秒 + 4 秒（读题和点按钮的固定开销）
+
+   为什么用 1000 的一句：这样两档的区间严格不重叠 ——
+     答对 8 句最差 = 8×1000 + 0   = 8000
+     答对 7 句最好 = 7×1000 + 999 = 7999  < 8000
+   所以「先比答对句数，句数一样再比速度」天然成立，不用写额外排序规则，
+   也不会出现「答对 7 句但飞快」反超「答对 8 句但很慢」的情况。
    ========================================================= */
 (function () {
   'use strict';
@@ -10,8 +22,14 @@
   var say   = window.gameSay;
   var store = window.gameStore;
 
-  var BEST_KEY = 'xixi-poem-best';   // { d1: 简单最佳, d2: 挑战最佳 }
+  var BEST_KEY = 'xixi-poem-best';   // { d1: 简单最佳综合分, d2: 挑战最佳综合分 }
   var ROUND = 8;
+
+  /* ---------- 时间加权常量 ---------- */
+  var HIT_UNIT    = 1000;   // 答对一句值多少分（见文件头说明）
+  var SPEED_MAX   = 999;    // 速度分上限，必须小于 HIT_UNIT
+  var SEC_PER_CHAR = 1.8;   // 每个字算多少秒算「满速」
+  var SEC_EXTRA   = 4;      // 固定开销：读题、点按钮
 
   /* ---------- 小学课本名句库（句名 : 句子，逐句校对） ---------- */
   var POEMS = [
@@ -135,11 +153,13 @@
   var scoreEl = document.getElementById('pmScore');
   var missEl  = document.getElementById('pmMiss');
   var bestEl  = document.getElementById('pmBest');
+  var timeEl  = document.getElementById('pmTime');
+  var spdEl   = document.getElementById('pmSpd');
   var diffBtns = Array.prototype.slice.call(document.querySelectorAll('.sg-size[data-flash]'));
 
   var flashMs = 1000;   // 当前难度闪现时长
   var qIdx = 0;         // 第几句（0 起）
-  var score = 0;
+  var score = 0;        // 答对句数
   var miss = 0;
   var lastIdx = -1;     // 上一句，避免连续重复
   var seq = 0;          // 阶段令牌：难度切换 / 重开时使旧定时器失效
@@ -147,8 +167,55 @@
   var cur = null;       // 当前句数据
   var curBlank = 0;     // 当前挖的空
 
+  /* 计时：qStartAt 是这句「可以开始作答」的时刻（挖空出现），
+     hitSecs 收集每个答对句的作答用时，跳过的不计入（跳过本来就没分）。 */
+  var qStartAt = 0;
+  var hitSecs = [];
+
+  function now() { return (new Date()).getTime(); }
+
   function rnd(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
   function isPunct(ch) { return '，。、！？；：'.indexOf(ch) >= 0; }
+
+  /* ---------- 时间加权算分 ---------- */
+  /* 这句的参考用时：按字数给，句子越长理应越宽容 */
+  function refSec(chars) {
+    var n = 0;
+    for (var i = 0; i < chars.length; i++) { if (!isPunct(chars[i])) n++; }
+    return n * SEC_PER_CHAR + SEC_EXTRA;
+  }
+
+  /* 单句速度比：1 = 满分速，用时达到参考用时则为 0，超时不为负 */
+  function speedRatio(sec) {
+    var ref = refSec(cur.chars);
+    if (!(ref > 0)) return 0;
+    var r = 1 - sec / ref;
+    return r > 1 ? 1 : (r < 0 ? 0 : r);
+  }
+
+  /* 速度分：所有答对句速度比的平均 × 999（取整） */
+  function speedScore() {
+    if (!hitSecs.length) return 0;
+    var sum = 0;
+    for (var i = 0; i < hitSecs.length; i++) sum += speedRatio(hitSecs[i]);
+    return Math.round(SPEED_MAX * sum / hitSecs.length);
+  }
+
+  /* 综合分：答对数 × 1000 + 速度分 */
+  function totalScore() { return score * HIT_UNIT + speedScore(); }
+
+  /* 已答对句的平均每句用时（秒），结算页显示 */
+  function avgSec() {
+    if (!hitSecs.length) return 0;
+    var s = 0;
+    for (var i = 0; i < hitSecs.length; i++) s += hitSecs[i];
+    return s / hitSecs.length;
+  }
+
+  function updateStat() {
+    scoreEl.textContent = String(score);
+    if (spdEl) spdEl.textContent = String(speedScore());
+  }
 
   /* ---------- 最佳分 ---------- */
   function bestKey() { return flashMs <= 500 ? 'd2' : 'd1'; }
@@ -179,6 +246,10 @@
       picks.push(valid[j]);
       valid.splice(j, 1);
     }
+    // 必须升序（从左到右）。之前这里是乱序的，
+    // 会出现「左边那个空标②、右边那个空标①」，
+    // 孩子就不知道该先填哪个了。现在保证 fills[0] 永远是最左边的空。
+    picks.sort(function (a, b) { return a - b; });
     return picks;
   }
 
@@ -226,6 +297,8 @@
   function isCommonCh(ch) { return COMMON.indexOf(ch) >= 0; }
 
   /* ---------- 渲染 ---------- */
+  var ORD = ['①', '②', '③', '④'];
+
   function renderLine(withBlanks) {
     lineEl.innerHTML = '';
     var chars = cur.chars;
@@ -235,8 +308,17 @@
         sp.className = 'pm-ch pm-ch--p';
         sp.textContent = chars[i];
       } else if (withBlanks && cur.blanks.indexOf(i) >= 0) {
-        sp.className = 'pm-blank' + (i === cur.blanks[curBlank] ? ' is-cur' : '');
+        var bi = cur.blanks.indexOf(i);          // 这个空是第几个（从左往右数）
+        var isCur = (i === cur.blanks[curBlank]);
+        sp.className = 'pm-blank' + (isCur ? ' is-cur' : ' is-todo');
         sp.setAttribute('data-blank', String(i));
+        // 没填的空带上 ①②，明确告诉小朋友「先填 ①，再填 ②」
+        if (bi >= 0) {
+          var tag = document.createElement('i');
+          tag.className = 'pm-ord';
+          tag.textContent = ORD[bi] || String(bi + 1);
+          sp.appendChild(tag);
+        }
       } else {
         sp.className = 'pm-ch';
         sp.textContent = chars[i];
@@ -274,7 +356,12 @@
       for (var i = 0; i < boxes.length; i++) {
         if (boxes[i].getAttribute('data-blank') === String(blankAt)) box = boxes[i];
       }
-      if (box) { box.textContent = ch; box.classList.add('is-fill'); box.classList.remove('is-cur'); }
+      if (box) {
+        // 填入后把序号角标去掉，只留字
+        box.textContent = ch;
+        box.classList.add('is-fill');
+        box.classList.remove('is-cur', 'is-todo');
+      }
       /* 全部禁用一小会儿，防止连点 */
       for (var j = 0; j < optsEl.children.length; j++) optsEl.children[j].disabled = true;
 
@@ -286,6 +373,8 @@
           busy = false;
           highlightCurrent();
           renderOptions();
+          msgEl.textContent = '第 ② 个空（右边那个），是哪个字呢？';
+          msgEl.className = 'pm-msg';
         }, 420);
       } else {
         complete();
@@ -304,16 +393,25 @@
     var boxes = lineEl.querySelectorAll('.pm-blank');
     for (var i = 0; i < boxes.length; i++) {
       var at = parseInt(boxes[i].getAttribute('data-blank'), 10);
-      boxes[i].classList.toggle('is-cur', cur.blanks[curBlank] === at);
+      var on = cur.blanks[curBlank] === at;
+      boxes[i].classList.toggle('is-cur', on);
+      boxes[i].classList.toggle('is-todo', !on);
     }
   }
 
   function complete() {
+    // 记录这句的作答用时（从挖空出现到两个空都填对）
+    if (qStartAt) hitSecs.push((now() - qStartAt) / 1000);
     score++;
-    scoreEl.textContent = String(score);
-    msgEl.textContent = '✅「' + cur.p.t + '」完成！';
+    updateStat();
+    var used = (now() - qStartAt) / 1000;
+    var r = speedRatio(used);
+    var tip = '✅「' + cur.p.t + '」完成！用时 ' + used.toFixed(1) + ' 秒' +
+      (r >= 0.999 ? '，满分速！⚡' : r <= 0 ? '，慢慢来～' : '，速度分 ' + Math.round(SPEED_MAX * r));
+    msgEl.innerHTML = tip;
     msgEl.className = 'pm-msg is-ok';
     renderLine(false);            // 显示完整句
+    if (timeEl) timeEl.textContent = avgSec().toFixed(1);
     var my = seq;
     setTimeout(function () {
       if (my !== seq) return;
@@ -348,25 +446,34 @@
       if (my !== seq) return;
       flashEl.textContent = '';
       flashEl.classList.remove('is-on');
+      // 挖空出现 = 开始计时。闪现那一下不算作答时间，
+      // 因为闪多久是难度定的，不是小朋友的反应快慢。
+      qStartAt = now();
       renderLine(true);
       renderOptions();
       busy = false;
-      msgEl.textContent = '挖掉的字是哪个呢？点一个试试！';
+      msgEl.textContent = '先填 ①（左边那个空），是哪个字呢？';
       msgEl.className = 'pm-msg';
     }, flashMs);
   }
 
   function finish() {
-    var isRecord = saveBest(score);
+    var sp = speedScore();
+    var ts = totalScore();
+    var isRecord = saveBest(ts);
     showBest();
+    updateStat();
     flashEl.textContent = '🏁 一轮结束！';
     flashEl.classList.remove('is-on');
     lineEl.innerHTML = '';
     optsEl.innerHTML = '';
-    msgEl.innerHTML = (score === ROUND ? '🏆 满分！记忆小诗人！' :
+    var head = score === ROUND ? '🏆 满分！记忆小诗人！' :
       score >= 6 ? '🎉 太棒了，古诗记得很牢！' :
-      score >= 3 ? '👍 不错哦，再多念几遍就更棒！' : '💪 别灰心，先把这些名句读熟吧！') +
-      ' 本轮得分 <b>' + score + '</b>/8' + (isRecord && score > 0 ? '，新纪录！🌟' : '');
+      score >= 3 ? '👍 不错哦，再多念几遍就更棒！' : '💪 别灰心，先把这些名句读熟吧！';
+    msgEl.innerHTML = head +
+      '<br>答对 <b>' + score + '</b>/8 句 · 速度分 <b>' + sp + '</b>' +
+      '<br>平均每句 <b>' + avgSec().toFixed(1) + '</b> 秒 · <b>综合分 ' + ts + '</b>' +
+      (isRecord && ts > 0 ? '，新纪录！🌟' : '');
     msgEl.className = 'pm-msg ' + (score >= 3 ? 'is-ok' : 'is-no');
     skipBtn.textContent = '再来一轮 🔄';
     say(score >= 6 ? '古诗背得真熟！🌟' : '再来一轮，加油！💪');
@@ -378,8 +485,11 @@
     qIdx = 0;
     score = 0;
     miss = 0;
-    scoreEl.textContent = '0';
+    hitSecs = [];
+    qStartAt = 0;
+    updateStat();
     missEl.textContent = '0';
+    if (timeEl) timeEl.textContent = '0.0';
     skipBtn.textContent = '跳过这句 ⏭️';
     nextSentence();
   }

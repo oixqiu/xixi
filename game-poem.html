@@ -31,12 +31,22 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .pm-ch{display:inline-block;width:1.32em;text-align:center;}
 .pm-ch--p{width:.7em;}
 .pm-blank{
+  position:relative;
   display:inline-block;width:1.5em;box-sizing:border-box;
   border-bottom:3px solid var(--pink);color:var(--leaf-deep);
   text-align:center;font-weight:900;border-radius:6px 6px 0 0;
 }
 .pm-blank.is-cur{border-bottom-color:var(--mint);background:#eafaf1;}
 .pm-blank.is-fill{animation:cellPop .35s var(--ease);}
+/* 待填的空用虚线描边，跟已经填好的区分开 */
+.pm-blank.is-todo{border-bottom-style:dashed;border-bottom-color:#f0b7cd;}
+/* 左上角的①②角标，告诉小朋友先填哪个 */
+.pm-ord{
+  position:absolute;left:50%;top:-14px;transform:translateX(-50%);
+  font-size:.44em;font-style:normal;line-height:1;font-weight:900;
+  color:var(--mint);pointer-events:none;
+}
+.pm-blank.is-cur .pm-ord{color:#c76287;}
 .pm-opts{
   display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
   max-width:340px;margin:20px auto 0;
@@ -69,6 +79,25 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .pm-msg.is-no{color:#c76287;}
 .pm-actions{display:flex;justify-content:center;margin-top:14px;}
 .pm-actions .btn[hidden]{display:none;}
+
+/* 计分规则说明框 */
+.pm-score-box{
+  margin-top:20px;padding:18px 20px;border-radius:var(--r-lg);
+  background:linear-gradient(150deg,#f3fbf6,#fff6fa);
+  border:2px solid #e3f2e9;text-align:left;
+}
+.pm-score-box__t{margin:0 0 10px;font-size:17px;font-weight:900;color:var(--leaf-deep);}
+.pm-score-box__f{
+  margin:0 0 10px;padding:9px 12px;border-radius:12px;
+  background:#fff;border:1.5px dashed var(--mint);
+  font-size:15.5px;font-weight:800;color:var(--leaf-deep);text-align:center;
+}
+.pm-score-box__list{margin:0;padding-left:20px;}
+.pm-score-box__list li{
+  font-size:14.5px;font-weight:600;color:var(--ink-2);line-height:1.75;margin-bottom:5px;
+}
+.pm-score-box__list b{color:var(--leaf-deep);}
+.pm-score-box .rules-tip{margin:10px 0 0;}
 </style>
 </head>
 <body>
@@ -111,7 +140,9 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
           </div>
           <div class="sg-stats">
             <span class="sg-stat">📜 第 <b id="pmNo">1</b>/8 句</span>
-            <span class="sg-stat">得分 <b id="pmScore">0</b></span>
+            <span class="sg-stat">✅ 答对 <b id="pmScore">0</b></span>
+            <span class="sg-stat">⚡ 速度分 <b id="pmSpd">0</b></span>
+            <span class="sg-stat">⏱ 均 <b id="pmTime">0.0</b> 秒/句</span>
             <span class="sg-stat">❌ 错误 <b id="pmMiss">0</b></span>
             <span class="sg-stat">🌟 最佳 <b id="pmBest">—</b></span>
           </div>
@@ -147,12 +178,30 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
       <ol class="rules reveal">
         <li>选难度：<b>简单闪 1 秒</b>、<b>挑战闪 0.5 秒</b>，闪得越快越考验记忆！</li>
         <li>一句古诗名句会<b>先完整闪现一下</b>，然后藏起来——眼睛要快哦！</li>
-        <li>句子会再出现，但被<b>挖掉了 2 个字</b>（空空的方框）。</li>
+        <li>句子会再出现，但被<b>挖掉了 2 个字</b>。两个空左边标 <b>①</b>、右边标 <b>②</b>，
+            <b>从左往右</b>依次填，先填 ① 再填 ②。</li>
         <li>每个空有 <b>4 个候选字</b>，点你认为对的那个字填进去。</li>
-        <li>填对会自动跳下一个空；<b>两个空都对</b>，这句就算你赢，得 1 分！填错会抖一抖，还能继续选。</li>
-        <li>一轮共 <b>8 句</b>，结束后看得分，各难度的最佳分会保存下来。想不出可以点「<b>跳过这句 ⏭️</b>」（跳过不计分）。</li>
-        <li class="rules-tip">💡 小秘诀：闪现时别一个字一个字地记，把整句在心里「念一遍」，声音记忆比眼睛更牢！</li>
+        <li>填对会自动跳下一个空；<b>两个空都对</b>，这句就算你赢，答对数 +1。填错会抖一抖，还能继续选。</li>
+        <li>一轮共 <b>8 句</b>，结束后看得分。想不出可以点「<b>跳过这句 ⏭️</b>」（跳过不计分）。</li>
       </ol>
+
+      <div class="pm-score-box reveal">
+        <h3 class="pm-score-box__t">🏅 分数怎么算？</h3>
+        <p class="pm-score-box__f"><b>综合分 = 答对句数 × 1000 + 速度分</b></p>
+        <ul class="pm-score-box__list">
+          <li><b>答对句数</b>是第一位的：多答对一句就多 1000 分，比任何速度优势都大。</li>
+          <li><b>速度分</b>最高 999 分：从挖空出现到两个字都填对，用时越少越高；
+              刚好用满「参考时间」就是 0 分，再慢也不扣成负数。</li>
+          <li><b>参考时间</b>按句子长短算：句子字数 × 1.8 秒 + 4 秒（点按钮的固定开销），
+              所以长句天然多一点宽容，不同长度的句子也公平。</li>
+          <li>句内填错的次数<strong>不额外扣分</strong>，但会占用你的时间 ——
+              靠速度分自然体现，粗心就慢、慢就吃亏，比直接罚分更合理。</li>
+          <li>比如：8 句全对、每句都抢最快 → <b>8×1000+999 = 8999</b>；
+              7 句全对、再快 → 最多 <b>7999</b>，还是比不过 8 句里答得慢的那个。
+              这样既奖励记性好，也奖励记得<strong>又快又准</strong>。</li>
+        </ul>
+        <p class="rules-tip">💡 小秘诀：闪现时别一个字一个字地记，把整句在心里「念一遍」，声音记忆比眼睛更牢！</p>
+      </div>
     </div>
   </section>
 

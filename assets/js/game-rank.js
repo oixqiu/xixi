@@ -42,12 +42,27 @@
     return String(v);
   }
 
-  /* 难度标签：把 3 / 4 / 5 这类规格显示成人话 */
+  /* 难度标签：把 3 / 4 / 5 这类规格、以及 d1/d2 这类内部代号显示成人话 */
+  var LV_NAME = {
+    d1: '⭐ 简单', d2: '⭐⭐ 挑战',
+    easy: '⭐ 简单', hard: '⭐⭐ 挑战',
+    default: ''
+  };
   function levelText(level) {
-    if (!level || level === 'default') return '';
-    if (/^\d+$/.test(level)) return level + ' 档';
-    if (/^\d+x\d+$/.test(level)) return level.replace('x', '×');
-    return level;
+    if (!level) return '';
+    var k = String(level);
+    if (Object.prototype.hasOwnProperty.call(LV_NAME, k)) return LV_NAME[k];
+    if (/^\d+$/.test(k)) return k + ' 档';
+    if (/^\d+x\d+$/.test(k)) return k.replace('x', '×');
+    return k;
+  }
+
+  /* 同一个难度可能被历史上传成不同写法：舒尔特方格的 3 宫格
+     既有 '3' 也有 '3x3'，直接按 level 分组会变成两张榜。
+     这里把 'NxN' 归一化成 'N' 再合并。 */
+  function normLevel(level) {
+    var m = /^(\d+)x\d+$/.exec(String(level || ''));
+    return m ? m[1] : String(level || '');
   }
 
   /* 一个 level 一张榜单卡；游戏只有一个难度时就只显示一张 */
@@ -101,8 +116,24 @@
         }
         done();
 
-        // 排序：服务端已排好序，这里按 level 名排一下保证顺序稳定
-        groups.sort(function (a, b) { return (a.level || '') < (b.level || '') ? -1 : 1; });
+        // 同一个难度可能被历史上传成不同写法（舒尔特方格 3 宫格既有 '3' 也有 '3x3'），
+        // 直接按 level 分组会变成两张榜。先归一化再合并。
+        var merged = {};
+        var order = [];
+        groups.forEach(function (g) {
+          var lv = normLevel(g.level);
+          if (!merged[lv]) { merged[lv] = []; order.push(lv); }
+          merged[lv] = merged[lv].concat(g.items || []);
+        });
+        groups = order.map(function (lv) {
+          var items = merged[lv];
+          // 合并后要重排：越大越好（小数综合分也能正确比较）
+          var b0 = items.length ? (items[0].better || better) : better;
+          items.sort(function (a, b2) {
+            return b0 === 'small' ? a.value - b2.value : b2.value - a.value;
+          });
+          return { level: lv, items: items };
+        });
 
         var multi = groups.length > 1;
         groups.forEach(function (g) {
@@ -111,7 +142,7 @@
           var b = items[0].better || better;
 
           var html = '';
-          if (multi) {
+          if (multi || lt) {
             html += '<h4 class="gr__lv">' + (lt ? esc(lt) : '总成绩') + '</h4>';
           }
           html += '<ol class="gr__list">';
