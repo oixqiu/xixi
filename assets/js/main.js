@@ -253,7 +253,12 @@
       return;
     }
     window.XixiCloud.fetchDiary(function (res) {
-      var rows = (res && res.ok && res.rows) ? res.rows : [];
+      var all = (res && res.ok && res.rows) ? res.rows : [];
+      // 首页是公共区域，只显示审核通过的。
+      // 服务端对「别人的」日记已经只返回 approved 了，但自己登录时
+      // 会额外返回自己的待审/被驳回日记 —— 首页不显示这些，
+      // 否则等于把自己的未过审内容公开了（虽然带角标，但首页不该出现）。
+      var rows = all.filter(function (d) { return !d.status || d.status === 'approved'; });
       var html = '';
       var n = Math.min(rows.length, 6);
       for (var i = 0; i < n; i++) html += diaryCard(rows[i]);

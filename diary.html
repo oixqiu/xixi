@@ -105,7 +105,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
       <!-- 登录后的写作区 -->
       <div class="dw-write reveal" id="writer" style="display:none;">
         <h3>写下今天的心情</h3>
-        <p class="dw-sub">只有登录的朋友才能写，放心写吧 🌷</p>
+        <p class="dw-sub">只有登录的朋友才能写 🌷 写完要先给管理员看一眼，<b>通过之后</b>才会贴到日记墙上</p>
 
         <div class="dw-moods" id="moods" role="group" aria-label="选一个心情"></div>
 
@@ -203,14 +203,27 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
   textEl.addEventListener('input', syncCount);
 
   /* ---------- 渲染 ---------- */
+  /* 审核角标：只有自己的日记才会带 status（别人的一律是 approved），
+     所以这里只在「不是已通过」时显示，避免满墙都是「已通过」很难看 */
+  var STATUS_TAG = {
+    pending:  { cls: 'dw-st--pending',  txt: '⏳ 审核中' },
+    rejected: { cls: 'dw-st--rejected', txt: '🚫 未通过' }
+  };
+
   function card(it) {
     // at 缺失时别格式化出 NaN，直接留空
     var dateTxt = it.at ? fmtDate(it.at) : '';
     var who = '<p class="diary__who' + (it.mine ? ' diary__who--mine' : '') + '">' +
               esc(it.name || '神秘的朋友') + (it.mine ? '（我）' : '') + '</p>';
+    var tag = '';
+    if (it.mine && it.status && STATUS_TAG[it.status]) {
+      tag = '<span class="dw-st ' + STATUS_TAG[it.status].cls + '">' +
+            STATUS_TAG[it.status].txt + '</span>';
+    }
     return '<article class="diary reveal is-in">' +
       '<div class="diary__top"><span class="diary__date">' + esc(dateTxt) + '</span>' +
-      '<span class="diary__mood">' + esc(it.mood || '😊') + '</span></div>' +
+      '<span class="diary__right">' + tag +
+      '<span class="diary__mood">' + esc(it.mood || '😊') + '</span></span></div>' +
       who +
       (it.title ? '<h3 class="diary__title">' + esc(it.title) + '</h3>' : '') +
       '<p class="diary__txt">' + esc(it.text) + '</p>' +
@@ -305,7 +318,8 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
       textEl.value = '';
       titleEl.value = '';
       syncCount();
-      say('贴好啦！谢谢你写下今天 🌷');
+      // 日记要先经过管理员审核才会上墙，如实告诉孩子，别让他以为丢了
+      say(res.msg || '已经交上去啦！等管理员看过就会贴到墙上 🌷');
       // 服务端只是「已入队」，真值以列表为准 —— 直接重拉一次，
       // 待落盘的那条在读接口里也能看到，所以会立刻出现在最前面。
       load();

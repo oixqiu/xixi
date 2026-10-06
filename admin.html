@@ -50,6 +50,33 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .ad-gate h2{font-size:22px;margin:0 0 8px;color:var(--ink,#33463c);}
 .ad-gate p{font-size:13.5px;color:var(--ink-3,#7a8a80);margin:0 0 20px;}
 .ad-note{background:#f7fbf9;border-radius:12px;padding:11px 14px;font-size:12.5px;color:var(--ink-3,#7a8a80);line-height:1.6;margin-top:14px;}
+
+/* ---- 日记审核 ---- */
+.ad-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px;}
+.ad-tab{padding:7px 14px;border-radius:999px;border:2px solid #d8e8de;background:#fff;
+  font-size:13.5px;font-weight:800;color:var(--ink-2,#4a5b52);cursor:pointer;font-family:inherit;}
+.ad-tab.is-on{background:#7ed6a8;border-color:#7ed6a8;color:#fff;}
+.ad-tab .dot{display:inline-block;min-width:19px;padding:0 5px;margin-left:5px;border-radius:999px;
+  background:#ff8f8f;color:#fff;font-size:11.5px;font-weight:900;line-height:19px;text-align:center;}
+.ad-card{border:2px solid #e6f2ea;border-radius:16px;padding:14px 15px;margin-bottom:11px;background:#fcfefd;}
+.ad-card--pending{border-color:#ffd9a0;background:#fffaf0;}
+.ad-card--rejected{border-color:#f3d0d0;background:#fdf7f7;}
+.ad-card__top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px;}
+.ad-who{font-size:15px;font-weight:900;color:var(--ink,#33463c);}
+.ad-mood{font-size:19px;line-height:1;}
+.ad-when{font-size:12.5px;color:var(--ink-3,#7a8a80);margin-left:auto;}
+.ad-badge--pending{background:#fff3e0;color:#c07a1a;}
+.ad-badge--approved{background:#eaf7ef;color:#2f9d6d;}
+.ad-badge--rejected{background:#fdecec;color:#c05050;}
+.ad-title{font-size:15.5px;font-weight:800;color:var(--leaf-deep);margin-bottom:4px;}
+.ad-body{font-size:14.5px;line-height:1.75;color:var(--ink-2,#4a5b52);white-space:pre-wrap;word-break:break-word;}
+.ad-acts{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap;}
+.ad-btn--ok{background:linear-gradient(135deg,#7ed6a8,#a8e6c9);color:#fff;border:2px solid transparent;}
+.ad-btn--ok:hover{filter:brightness(1.05);}
+.ad-btn--no{background:#fff;color:#c05050;border:2px solid #f0caca;}
+.ad-btn--no:hover{background:#fdf2f2;}
+.ad-flag{display:inline-block;font-size:11.5px;font-weight:800;color:#c07a1a;
+  background:#fff3e0;border-radius:6px;padding:2px 7px;margin-left:6px;}
 </style>
 </head>
 <body>
@@ -171,6 +198,20 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
           <p class="ad-empty" id="adScoreEmpty" style="display:none;">还没有成绩记录</p>
         </div>
 
+        <div class="ad-box">
+          <h2>📔 日记审核 <span id="adDiaryDot"></span></h2>
+          <p class="ad-sub">孩子写的日记要先在这里通过，才会出现在日记墙上。<br>
+          没通过的只有作者自己能看到，管理员能看到全部内容并删掉。</p>
+          <div class="ad-tabs" id="adDiaryTabs">
+            <button class="ad-tab is-on" data-dtab="pending" type="button">⏳ 待审核<span class="dot" id="adDiaryPendingN" style="display:none;">0</span></button>
+            <button class="ad-tab" data-dtab="approved" type="button">✅ 已通过</button>
+            <button class="ad-tab" data-dtab="rejected" type="button">🚫 未通过</button>
+            <button class="ad-tab" data-dtab="all" type="button">📋 全部</button>
+          </div>
+          <div id="adDiaryList" style="margin-top:12px;"></div>
+          <p class="ad-empty" id="adDiaryEmpty" style="display:none;">这里还没有日记</p>
+        </div>
+
         <div class="ad-box" style="text-align:center;">
           <button class="ad-btn ad-btn--ghost" id="adRefresh" type="button">🔄 刷新</button>
           <p class="ad-note">当前登录：<b id="adWho">—</b>　·　服务器：<span id="adApi">—</span><br>
@@ -255,6 +296,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
     loadGames();
     loadUsers();
     loadScores();
+    loadDiary();
   }
 
   /* ---------- 游戏下拉框（补成绩用） ---------- */
@@ -432,7 +474,151 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
     }
   }
 
-  document.getElementById('adRefresh').addEventListener('click', function () { loadUsers(); loadScores(); });
+  /* ---------- 日记审核 ---------- */
+  var diaryTab = 'pending';
+  var diaryAll = [];
+
+  function diaryStatusBadge(st) {
+    var cls = st === 'approved' ? 'approved' : (st === 'rejected' ? 'rejected' : 'pending');
+    var txt = st === 'approved' ? '已通过' : (st === 'rejected' ? '未通过' : '审核中');
+    return '<span class="ad-badge ad-badge--' + cls + '">' + txt + '</span>';
+  }
+
+  function loadDiary() {
+    api('GET', '/api/admin/diary', null, function (res) {
+      var box = document.getElementById('adDiaryList');
+      var empty = document.getElementById('adDiaryEmpty');
+      if (!res.ok) {
+        box.innerHTML = '<div class="ad-empty">' + escapeHtml(res.msg || '加载失败') + '</div>';
+        return;
+      }
+      diaryAll = res.rows || [];
+
+      // 待审数量做成 tab 上的小红点
+      var pn = res.pendingCount || 0;
+      var dot = document.getElementById('adDiaryPendingN');
+      if (pn > 0) { dot.style.display = ''; dot.textContent = pn; }
+      else { dot.style.display = 'none'; }
+      document.getElementById('adDiaryDot').innerHTML =
+        pn > 0 ? '<span class="ad-flag">有 ' + pn + ' 篇等你审</span>' : '';
+
+      renderDiary();
+    });
+  }
+
+  function renderDiary() {
+    var box = document.getElementById('adDiaryList');
+    var empty = document.getElementById('adDiaryEmpty');
+    var list = diaryTab === 'all'
+      ? diaryAll
+      : diaryAll.filter(function (d) { return d.status === diaryTab; });
+
+    if (!list.length) {
+      box.innerHTML = '';
+      empty.style.display = 'block';
+      empty.textContent = diaryTab === 'pending' ? '没有待审核的日记啦，清空了 🎉'
+        : diaryTab === 'approved' ? '还没有通过的日记'
+        : diaryTab === 'rejected' ? '没有被驳回的日记' : '这里还没有日记';
+      return;
+    }
+    empty.style.display = 'none';
+
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var d = list[i];
+      var pending = d.status === 'pending';
+      html += '<div class="ad-card ad-card--' + d.status + '">' +
+        '<div class="ad-card__top">' +
+          '<span class="ad-mood">' + escapeHtml(d.mood || '😊') + '</span>' +
+          '<span class="ad-who">' + escapeHtml(d.username) + '</span>' +
+          diaryStatusBadge(d.status) +
+          '<span class="ad-when">' + fmtTime(d.at) +
+          (Number(d.id) < 0 ? '<span class="ad-flag">刚提交</span>' : '') + '</span>' +
+        '</div>' +
+        (d.title ? '<div class="ad-title">' + escapeHtml(d.title) + '</div>' : '') +
+        '<div class="ad-body">' + escapeHtml(d.text) + '</div>' +
+        '<div class="ad-acts">';
+
+      if (pending) {
+        html += '<button class="ad-btn ad-btn--sm ad-btn--ok" data-dok="' + d.id + '" type="button">✅ 通过</button>' +
+                '<button class="ad-btn ad-btn--sm ad-btn--no" data-dno="' + d.id + '" type="button">🚫 不通过</button>';
+      } else if (d.status === 'rejected') {
+        html += '<button class="ad-btn ad-btn--sm ad-btn--ok" data-dok="' + d.id + '" type="button">✅ 改成通过</button>';
+      } else {
+        html += '<button class="ad-btn ad-btn--sm ad-btn--no" data-dno="' + d.id + '" type="button">🚫 改成不通过</button>';
+      }
+      html += '<button class="ad-btn ad-btn--danger ad-btn--sm" data-ddel="' + d.id + '" type="button">🗑 删除</button>' +
+        '</div></div>';
+    }
+    box.innerHTML = html;
+
+    // 通过
+    var oks = box.querySelectorAll('[data-dok]');
+    for (var a = 0; a < oks.length; a++) {
+      oks[a].addEventListener('click', function () {
+        setStatus(this.getAttribute('data-dok'), 'approved', this);
+      });
+    }
+    // 不通过
+    var nos = box.querySelectorAll('[data-dno]');
+    for (var b = 0; b < nos.length; b++) {
+      nos[b].addEventListener('click', function () {
+        var id = this.getAttribute('data-dno');
+        if (!confirm('确定不通过这篇日记吗？作者会看到「未通过」。')) return;
+        setStatus(id, 'rejected', this);
+      });
+    }
+    // 删除
+    var dels = box.querySelectorAll('[data-ddel]');
+    for (var c = 0; c < dels.length; c++) {
+      dels[c].addEventListener('click', function () {
+        var id = this.getAttribute('data-ddel');
+        if (!confirm('确定删除这篇日记吗？删了就找不回来了。')) return;
+        api('DELETE', '/api/admin/diary?id=' + id, null, function (res) {
+          if (!res.ok) { alert(res.msg || '删除失败'); return; }
+          loadDiary();
+        });
+      });
+    }
+  }
+
+  function setStatus(id, status, btn) {
+    var old = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '处理中…'; }
+    api('PATCH', '/api/admin/diary', { id: parseInt(id, 10), status: status }, function (res) {
+      if (!res.ok) {
+        alert(res.msg || '操作失败');
+        if (btn) { btn.disabled = false; btn.textContent = old; }
+        return;
+      }
+      // 本地先改掉这一条的状态，列表不用等网络回来才刷新
+      for (var i = 0; i < diaryAll.length; i++) {
+        if (String(diaryAll[i].id) === String(id)) {
+          diaryAll[i].status = status;
+          diaryAll[i].statusText = res.statusText;
+        }
+      }
+      renderDiary();
+      // 后台红点数字要跟着变
+      loadDiary();
+    });
+  }
+
+  // tab 切换
+  var dtabs = document.querySelectorAll('[data-dtab]');
+  for (var t = 0; t < dtabs.length; t++) {
+    dtabs[t].addEventListener('click', function () {
+      diaryTab = this.getAttribute('data-dtab');
+      for (var i = 0; i < dtabs.length; i++) {
+        dtabs[i].classList.toggle('is-on', dtabs[i] === this);
+      }
+      renderDiary();
+    });
+  }
+
+  document.getElementById('adRefresh').addEventListener('click', function () {
+    loadUsers(); loadScores(); loadDiary();
+  });
 
   function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
