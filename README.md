@@ -134,6 +134,22 @@
 </figure>
 ```
 
+**手机竖着拍的照片**，要加`polaroid--tall`，不然默认的 4:3 画框会把人裁掉一半：
+
+```html
+<figure class="polaroid polaroid--tall reveal" style="--tilt:2.5deg">
+  <img src="assets/img/竖着的照片.jpg" alt="我的照片">
+  <figcaption>写一句小小的说明 🌷</figcaption>
+</figure>
+```
+
+**压缩**：在电脑上装好 ImageMagick 或用「图片压缩」，把长边缩到 **1000px** 就够了，
+手机上打开也不会糊。终端里可以直接用 macOS 自带的：
+
+```bash
+sips -s format jpeg -s formatOptions 68 -Z 1000 原图.jpg --out assets/img/新名字.jpg
+```
+
 ## 怎么发布
 
 改完内容后，把改动推到 `main` 分支即可，GitHub Pages 会自动重新构建：

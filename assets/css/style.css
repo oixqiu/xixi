@@ -318,6 +318,9 @@ p{margin:0;}
 }
 .polaroid:hover{transform:rotate(0deg) translateY(-8px) scale(1.03);box-shadow:var(--sh-lg);z-index:2;}
 .polaroid img{border-radius:4px;aspect-ratio:4/3;object-fit:cover;width:100%;}
+/* 竖着拍的照片（手机竖屏）用这个变体，不然 4:3 会把人物裁掉一半 */
+.polaroid--tall img{aspect-ratio:3/4;}
+.polaroid--tall figcaption{padding-top:11px;}
 .polaroid figcaption{
   text-align:center;font-size:14px;font-weight:700;color:var(--ink-2);
   padding:13px 4px 15px;
@@ -347,9 +350,18 @@ p{margin:0;}
   opacity:.7;
 }
 .diary:hover{transform:translateY(-6px);box-shadow:var(--sh-md);}
-.diary__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.diary__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;}
 .diary__date{font-weight:800;color:var(--leaf-deep);font-size:15px;}
 .diary__mood{font-size:24px;}
+/* 日记审核状态角标：只有自己的日记会显示（别人的服务端一律返回 approved）。
+   加在心情 emoji 左边，所以 top 行改成「日期顶左、心情+角标顶右」 */
+.diary__right{display:inline-flex;align-items:center;gap:7px;flex:none;}
+.dw-st{
+  display:inline-block;padding:3px 9px;border-radius:999px;
+  font-size:11.5px;font-weight:800;white-space:nowrap;
+}
+.dw-st--pending{background:#fff3e0;color:#c07a1a;}
+.dw-st--rejected{background:#fdecec;color:#c05050;}
 .diary__txt{font-size:15px;color:var(--ink-2);}
 .diary__tag{margin-top:14px;font-size:12.5px;font-weight:700;color:var(--mint);}
 .diary__hint{
