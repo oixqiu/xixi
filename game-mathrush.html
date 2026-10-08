@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script>
+/* 强制 HTTPS：http 进来立刻换成 https，否则登录会失败 */
+(function(){var l=window.location;if(l.protocol!=="http:")return;var h=l.hostname;
+if(h==="localhost"||h==="0.0.0.0"||h==="::1"||/^\d+\.\d+\.\d+\.\d+$/.test(h)||h.slice(-6)===".local")return;
+l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>算力大脑挑战版 ⏱ 曦曦的游戏屋</title>
+<meta name="description" content="3 分钟倒计时，看你能答对多少道口算题！1~3 位数加减乘除三档难度，题目一批接一批，答对越多越厉害。">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%8F%B0%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* 算力大脑挑战版专属。题面和选项的共用样式（.mq-*）在 assets/css/games.css 里，
+   这里只放倒计时和本游戏独有的部分。 */
+.mc-clock{font-size:46px;font-weight:900;color:#2f9d6d;letter-spacing:1px;
+  text-align:center;line-height:1.1;font-family:"Menlo","Consolas",monospace;}
+.mc-clock.is-urgent{color:#d46a90;animation:mcPulse 1s ease-in-out infinite;}
+.mc-clock.is-over{color:#c99a2e;}
+@keyframes mcPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.07);}}
+.mc-bar{height:10px;border-radius:99px;background:#ffe8ee;overflow:hidden;margin:10px 0 16px;}
+.mc-bar__in{height:100%;width:100%;border-radius:99px;
+  background:linear-gradient(90deg,#ffd97a,#ff9db5);transition:width .3s linear;}
+@media (max-width:420px){
+  .mc-clock{font-size:38px;}
+}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">⏱ Game · 三分钟冲刺</p>
+      <h1 class="ghero__title reveal">算力大脑<span class="ghero__title-accent">挑战版</span></h1>
+      <p class="ghero__sub reveal">只有 <strong>3 分钟</strong>，看谁能答对最多的口算题！题目会源源不断地来，手快就是王道～</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+
+        <div class="sg-sizes mq-sizes" id="mcSizes">
+          <button class="sg-size" data-lv="1" type="button">1 位数<small>入门</small></button>
+          <button class="sg-size is-on" data-lv="2" type="button">2 位数<small>日常</small></button>
+          <button class="sg-size" data-lv="3" type="button">3 位数<small>高手</small></button>
+        </div>
+
+        <div class="sg-stats" style="justify-content:center;">
+          <span class="sg-stat">✅ 答对 <b id="mcHit">0</b></span>
+          <span class="sg-stat">❌ 答错 <b id="mcMiss">0</b></span>
+          <span class="sg-stat">🎯 正确率 <b id="mcRate">—</b></span>
+          <span class="sg-stat">🌟 最佳 <b id="mcBest">—</b></span>
+        </div>
+
+        <div style="margin-top:14px;"><span class="mc-clock" id="mcClock">3:00</span></div>
+        <div class="mc-bar" aria-hidden="true"><div class="mc-bar__in" id="mcBar"></div></div>
+
+        <div class="mq-q" id="mcQ" aria-live="polite">
+          <p class="sg-placeholder">选好难度，点下面的按钮，3 分钟开始！⏱</p>
+        </div>
+
+        <div class="mq-opts" id="mcOpts"></div>
+        <p class="mq-fb" id="mcFb"></p>
+        <button class="btn btn--primary mq-next" id="mcStart" type="button">开始 3 分钟挑战 ▶</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 本游戏排行榜（game-rank.js 自动渲染） -->
+  <section class="section section--tint" id="gameRank">
+    <div class="wrap">
+      <div class="gr-box"></div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>⏱</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>先选难度：<b>1 位数</b>、<b>2 位数</b>还是 <b>3 位数</b>，三档各记各的最好成绩。</li>
+        <li>点开始，<strong>3 分钟</strong>倒计时就响起啦。</li>
+        <li>题目会<strong>一批接一批</strong>自动出现，答案四个选项，选对就算一分。</li>
+        <li>3 分钟结束时<strong>答对的总题数</strong>就是你的成绩，<b>越多越厉害</b>！</li>
+        <li>一共三个难度等级，可以挑战一下哪个档位自己最厉害！</li>
+        <li class="rules-tip">💡 小秘诀：手不用离开屏幕，眼睛看题、心里算、立刻点——
+        这一局比的不是会多少，而是<b>多快</b>。最后 30 秒会变红，抓紧！</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/api-config.js"></script>
+<script src="assets/js/xixi-api.js"></script>
+<script src="assets/js/game-rank.js"></script>
+<script src="assets/js/game-math.js"></script>
+<script src="assets/js/game-mathrush.js"></script>
+</body>
+</html>

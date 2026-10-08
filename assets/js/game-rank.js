@@ -22,7 +22,7 @@
     schulte: '秒', jump: '秒', guess: '步', mole: '秒', cancel: '秒', '24': '秒',
     rps: '连胜', eggy: '颗', estimate: '分', flash: '连', round: '分',
     change: '分', poem: '分', angle: '连', guessangle: '题', ratio: '题',
-    clock: '题', mirror: '度'
+    clock: '题', mirror: '度', mathspeed: '分', mathrush: '题'
   };
 
   /* 从本页文件名 game-xxx.html 推出 gameId */
@@ -42,9 +42,10 @@
     return String(v);
   }
 
-  /* 难度标签：把 3 / 4 / 5 这类规格、以及 d1/d2 这类内部代号显示成人话 */
+  /* 难度标签：把 3 / 4 / 5 这类规格、以及 d1/d2 这类内部代号显示成人话。
+     算力大脑是三档难度（1/2/3 位数），所以用到 d3。 */
   var LV_NAME = {
-    d1: '⭐ 简单', d2: '⭐⭐ 挑战',
+    d1: '⭐ 简单', d2: '⭐⭐ 挑战', d3: '⭐⭐⭐ 高手',
     easy: '⭐ 简单', hard: '⭐⭐ 挑战',
     default: ''
   };

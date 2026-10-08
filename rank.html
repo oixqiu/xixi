@@ -110,7 +110,14 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 
   var UNIT = { schulte:'秒', jump:'秒', guess:'步', mole:'秒', cancel:'秒', '24':'秒',
                rps:'连胜', eggy:'颗', estimate:'分', flash:'连', round:'分',
-               change:'分', poem:'分', angle:'连', guessangle:'题', ratio:'题', clock:'题' };
+               change:'分', poem:'分', angle:'连', guessangle:'题', ratio:'题',
+               clock:'题', mirror:'度', mathspeed:'分', mathrush:'题' };
+
+  /* 难度代号翻成人话，和 game-rank.js 里的 LV_NAME 保持一致 */
+  var LV_NAME = {
+    d1: '⭐ 简单', d2: '⭐⭐ 挑战', d3: '⭐⭐⭐ 高手',
+    easy: '⭐ 简单', hard: '⭐⭐ 挑战'
+  };
 
   var ALL = null;     // 全量聚合结果
   var cur = null;     // 当前显示的 tab key
@@ -158,7 +165,9 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
   }
 
   function levelName(level) {
-    return level === 'default' ? '' : ' · ' + level + (/\d+x\d+|^\d+$/.test(level) ? ' 档' : '');
+    if (!level || level === 'default') return '';
+    if (Object.prototype.hasOwnProperty.call(LV_NAME, level)) return ' · ' + LV_NAME[level];
+    return ' · ' + level + (/\d+x\d+|^\d+$/.test(level) ? ' 档' : '');
   }
 
   function renderTabs() {

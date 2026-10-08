@@ -508,3 +508,49 @@
   .gr__row{padding:10px 2px;}
   .gr__name{font-size:15px;}
 }
+
+/* =========================================================
+   算力大脑 · 计时版 / 挑战版 共用样式
+   ------------------------------------------------------------
+   这两款游戏长得很像（都是四则运算 + 四选一），
+   所以共用样式必须放在这里，不能写在某个页面的内联 <style> 里 ——
+   内联样式只对那一个页面生效，另一个页面会完全没有样式（踩过）。
+   ========================================================= */
+.mq-sizes{display:flex;gap:8px;flex-wrap:wrap;margin:0 auto 14px;}
+
+.mq-q{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+  margin:2px 0 18px;padding:22px 12px;border-radius:18px;
+  background:linear-gradient(135deg,#eafaf1,#fff7e0);border:1.5px dashed #7ed6a8;
+  font-family:"Menlo","Consolas",monospace;}
+.mq-num{font-size:44px;font-weight:900;color:#2f9d6d;line-height:1.1;}
+.mq-op{font-size:40px;font-weight:900;color:#d46a90;line-height:1.1;}
+.mq-eq{font-size:38px;font-weight:900;color:#8aa79b;line-height:1.1;margin-left:6px;}
+.mq-qm{font-size:44px;font-weight:900;color:#c99a2e;line-height:1.1;}
+.mq-flag{font-size:52px;line-height:1.1;}
+
+.mq-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px;margin:0 auto;}
+.mq-opt{padding:18px 8px;border-radius:16px;border:2.5px solid #bfe9d3;background:#fff;
+  font-size:27px;font-weight:900;color:#2f9d6d;cursor:pointer;
+  transition:transform .15s ease,border-color .15s ease,background .15s ease;
+  font-family:"Menlo","Consolas",monospace;}
+.mq-opt:hover:not(.is-ok):not(.is-bad):not(.is-dim){transform:translateY(-3px);border-color:#7ed6a8;}
+.mq-opt:active:not(.is-ok):not(.is-bad):not(.is-dim){transform:scale(.95);}
+.mq-opt.is-ok{border-color:#5cb98c;background:#eafaf1;box-shadow:0 0 0 3px #bfe9d3;}
+.mq-opt.is-bad{border-color:#f0a2a2;background:#fff2f2;}
+.mq-opt.is-dim{opacity:.4;}
+
+.mq-fb{text-align:center;font-size:15px;font-weight:700;color:#4a5b52;
+  min-height:24px;margin:14px 0 6px;line-height:1.6;}
+.mq-fb.is-ok{color:#2f9d6d;}
+.mq-fb.is-bad{color:#d46a90;}
+
+.mq-next{display:block;margin:0 auto 6px;}
+.mq-next.is-hide{visibility:hidden;}
+
+@media (max-width:420px){
+  .mq-num{font-size:34px;}
+  .mq-op{font-size:31px;}
+  .mq-eq{font-size:28px;margin-left:2px;}
+  .mq-qm{font-size:34px;}
+  .mq-opt{font-size:23px;padding:15px 6px;}
+}
