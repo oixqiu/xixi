@@ -21,7 +21,7 @@
   var UNIT = {
     schulte: '秒', jump: '秒', guess: '步', mole: '秒', cancel: '秒', '24': '秒',
     rps: '连胜', eggy: '颗', estimate: '分', flash: '连', round: '分',
-    change: '分', poem: '分', angle: '连', guessangle: '题', ratio: '题',
+    change: '题', poem: '分', angle: '连', guessangle: '题', ratio: '题',
     clock: '题', mirror: '度', mathspeed: '分', mathrush: '题'
   };
 

@@ -10,7 +10,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>购物找零 🛒 曦曦的游戏屋</title>
-<meta name="description" content="帮曦曦买东西算找零：先算一共花了多少钱，再从付出的钱里减一减，看看该找回多少！三种难度越练越厉害。">
+<meta name="description" content="帮曦曦买东西算找零：先算一共花了多少钱，再从付出的钱里减一减，从四个选项里选出该找回多少！三种难度一轮十题，越练越厉害。">
 <meta name="theme-color" content="#fbfef8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/style.css">
@@ -31,13 +31,38 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .ch-item__name{font-size:15px;font-weight:800;color:var(--ink-2);margin-top:6px;}
 .ch-item__price{font-size:19px;font-weight:900;color:var(--leaf-deep);margin-top:2px;}
 .ch-ask{
-  text-align:center;margin:18px 0 0;min-height:30px;
+  text-align:center;margin:16px 0 0;min-height:30px;
   font-size:clamp(18px,3.6vw,22px);font-weight:900;color:var(--ink-2);
 }
 .ch-pay{
   text-align:center;margin:8px 0 0;
   font-size:15px;font-weight:700;color:var(--ink-3);
 }
+
+/* 四个选项：2×2 网格。手机上单列会太挤，两列刚好 */
+.ch-opts{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  max-width:460px;margin:16px auto 0;
+}
+.ch-opt{
+  font-family:inherit;cursor:pointer;
+  display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;
+  gap:3px;padding:16px 8px;border-radius:16px;
+  background:#fff;border:2.5px solid #bfe9d3;
+  transition:transform .15s ease,border-color .15s ease,background .15s ease;
+  line-height:1.2;
+}
+.ch-opt__n{font-size:32px;font-weight:900;color:var(--leaf-deep);}
+.ch-opt__u{font-size:15px;font-weight:800;color:var(--ink-3);}
+.ch-opt__j{font-size:17px;font-weight:800;color:var(--ink-2);}
+.ch-opt:hover:not(.is-ok):not(.is-bad):not(.is-dim){transform:translateY(-3px);border-color:var(--mint);}
+.ch-opt:active:not(.is-ok):not(.is-bad):not(.is-dim){transform:scale(.95);}
+.ch-opt.is-ok{border-color:#5cb98c;background:#eafaf1;box-shadow:0 0 0 3px #bfe9d3;}
+.ch-opt.is-ok .ch-opt__n{color:#2f9d6d;}
+.ch-opt.is-bad{border-color:#f0a2a2;background:#fff2f2;}
+.ch-opt.is-bad .ch-opt__n{color:#c0653f;}
+.ch-opt.is-dim{opacity:.4;}
+
 .ch-steps{margin-top:14px;}
 .ch-step{
   background:#f8fdf9;border:1.5px dashed var(--mint);border-radius:12px;
@@ -47,11 +72,15 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 }
 .ch-result{
   text-align:center;margin:14px 0 0;min-height:34px;
-  font-size:27px;font-weight:900;color:var(--leaf-deep);
+  font-size:20px;font-weight:900;color:var(--leaf-deep);line-height:1.5;
 }
 .ch-result.is-show{animation:pop .5s var(--ease);}
 .ch-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px;}
-.ch-actions .btn[hidden]{display:none;}
+@media (max-width:420px){
+  .ch-opt{padding:14px 6px;}
+  .ch-opt__n{font-size:27px;}
+  .ch-opt__j{font-size:15px;}
+}
 @media (min-width:561px){
   .ch-goods li{width:158px;max-width:158px;}
 }
@@ -83,7 +112,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
     <div class="ghero__content">
       <p class="ghero__badge reveal">🛒 Game · 小小收银员</p>
       <h1 class="ghero__title reveal">购物找零</h1>
-      <p class="ghero__sub reveal">买东西啦！先算一共花了多少钱，再想想<strong>「该找回多少」</strong>，你就是最棒的小小收银员！</p>
+      <p class="ghero__sub reveal">买东西啦！先算一共花了多少钱，再从付出的钱里减一减，<strong>四个选项里找出该找回多少</strong>，你就是最棒的小小收银员！</p>
     </div>
   </section>
 
@@ -97,22 +126,26 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
             <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 困难<br><small>买 3 件</small></button>
           </div>
           <div class="sg-stats">
+            <span class="sg-stat">🎯 答对 <b id="chScore">0</b> / 10</span>
+            <span class="sg-stat">📋 第 <b id="chNo">1</b> 题</span>
             <span class="sg-stat">⏱ 用时 <b id="chTimer">00:00.0</b></span>
+            <span class="sg-stat">🏆 最佳 <b id="chBest">—</b></span>
             <span class="sg-stat">💪 已练 <b id="chDrill">0</b> 题</span>
           </div>
         </div>
 
         <ul class="ch-goods" id="chGoods"></ul>
 
-        <p class="ch-ask" id="chAsk">需要找回多少钱？</p>
         <p class="ch-pay" id="chPay"></p>
+        <p class="ch-ask" id="chAsk">该找回多少钱？</p>
+
+        <div class="ch-opts" id="chOpts" role="group" aria-label="选择找零金额"></div>
 
         <div class="ch-steps" id="chSteps"></div>
         <p class="ch-result" id="chResult"></p>
 
         <div class="ch-actions">
-          <button class="btn btn--primary" id="chShow" type="button">查看答案 💡</button>
-          <button class="btn btn--ghost" id="chNext" type="button" hidden>下一题 🛒</button>
+          <button class="btn btn--primary" id="chNext" type="button">下一题 ▶</button>
         </div>
       </div>
     </div>
@@ -135,11 +168,12 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
       <ol class="rules reveal">
         <li>选难度：<b>简单买 1 件</b>、<b>普通买 2 件</b>、<b>困难买 3 件</b>。</li>
         <li>看看买了什么，每件商品上都有价格，比如「5 元 8 角」。</li>
-        <li>先在心里<b>把几件商品的价格加起来</b>，算出一共花多少钱。</li>
-        <li>曦曦付出了一张钱（比如一张 50 元），想想<b>「需要找回多少钱？」</b></li>
-        <li>想好后点「<b>查看答案 💡</b>」，答案会一步一步教你怎么算：先加总价，再先减整元、再减角。</li>
-        <li>点「<b>下一题 🛒</b>」继续练！右上的计时秒表会看看你这次想了多久，「已练」会记下你练过的总题数。</li>
+        <li>再看看付出了多少钱（比如一张 50 元），心里想：<b>一共花了多少？该找回多少？</b></li>
+        <li>从下面<b>四个选项里选出正确的找零金额</b>，点一下就好啦！</li>
+        <li>不管答对答错，都会<b>一步一步教你怎么算</b>：先加总价，再先减整元、再减角。看看自己错在哪一步。</li>
+        <li>一轮 <b>10 题</b>，看看能答对几题！点「<b>下一题 ▶</b>」继续，右上角有计时和最佳成绩。</li>
         <li class="rules-tip">💡 小秘诀：找零可以先减整元、再减角。比如 50 元 − 18 元 3 角：先算 50 − 18 = 32 元，再减 3 角，就是 31 元 7 角！</li>
+        <li class="rules-tip">🤔 干扰项都是「真的会把账算错的方式」：把总价当找零、忘了减角、差 1 元、差 1 角……认真想一想再选哦！</li>
       </ol>
     </div>
   </section>
