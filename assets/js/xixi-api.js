@@ -117,7 +117,8 @@
       if (res.ok) {
         state.user = getUser() || { name: '?', role: 'player' };
         injectBar();
-        flushCbs(true);
+        updateBar();          // 关键：光调 injectBar 不够——挂件已存在时它直接 return，
+        flushCbs(true);       // 内容永远是首次注入时的「👤 登录」，登录态恢复不了
         flushQueue();
       } else {
         // token 过期，清掉当未登录
@@ -125,6 +126,7 @@
         setUser(null);
         state.user = null;
         injectBar();
+        updateBar();
         flushCbs(false);
       }
     });
@@ -255,7 +257,10 @@
     });
   }
 
-  /* ---------------- 顶部登录小挂件 ---------------- */
+  /* ---------------- 导航栏登录小挂件 ---------------- */
+  /* 未登录：一个「👤 登录」小按钮；已登录：名字胶囊 + 旁边的「退出」小按钮。
+     挂在 .nav__inner 里（汉堡按钮前面），桌面并排、手机也不挡汉堡；
+     页面没有导航栏时才 fixed 兜底浮在右上角。 */
   var BAR_ID = 'xxApiBar';
   function injectBar() {
     if (document.getElementById(BAR_ID)) return;
@@ -265,34 +270,66 @@
     }
     var style = document.createElement('style');
     style.textContent =
-      '.xx-api-bar{position:fixed;top:8px;right:8px;z-index:9999;display:inline-block;' +
-      'font:500 13px/1 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;' +
-      'background:rgba(255,255,255,.94);color:#2f9d6d;padding:8px 13px;border-radius:999px;' +
-      'border:1px solid #bfe9d3;cursor:pointer;text-decoration:none;}' +
-      '.xx-api-bar.off{color:#c0653f;border-color:#f0c9b8;}';
+      '.xx-api-bar{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:10px;' +
+      'font:800 13px/1 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}' +
+      /* 未登录：绿色实底，和导航 CTA 一个风格 */
+      '.xx-api-bar__btn{display:inline-block;padding:8px 14px;border-radius:999px;' +
+      'background:#7ed6a8;color:#fff;text-decoration:none;white-space:nowrap;' +
+      'box-shadow:0 4px 12px rgba(74,168,119,.28);}' +
+      '.xx-api-bar__btn:hover{background:#6cc797;}' +
+      /* 已登录：名字胶囊（点名字不会退出，退出在右边，防误点） */
+      '.xx-api-bar__me{display:inline-block;max-width:7em;padding:8px 12px;border-radius:999px;' +
+      'background:#e6f7ec;border:1.5px solid #bfe9d3;color:#2f9d6d;cursor:default;' +
+      'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+      /* 退出：白底淡字，和名字明显区分 */
+      '.xx-api-bar__out{display:inline-block;padding:8px 10px;border-radius:999px;' +
+      'background:#fff;border:1.5px solid #e6ddd4;color:#9b8a7c;cursor:pointer;' +
+      'font-family:inherit;font-size:12.5px;white-space:nowrap;}' +
+      '.xx-api-bar__out:hover{border-color:#e0b8a0;color:#c0653f;background:#fdf3ee;}' +
+      '@media (max-width:480px){.xx-api-bar__me{max-width:5em;}}' +
+      /* 兜底：页面没有导航栏时，浮回右上角（老行为） */
+      '.xx-api-bar.float{position:fixed;top:8px;right:8px;z-index:9999;margin-left:0;' +
+      'background:rgba(255,255,255,.94);padding:6px;border-radius:999px;' +
+      'border:1px solid #bfe9d3;box-shadow:0 6px 18px rgba(74,168,119,.18);}';
     document.head.appendChild(style);
-    var a = document.createElement('a');
-    a.id = BAR_ID;
-    a.className = 'xx-api-bar';
-    a.href = 'login.html';
-    a.addEventListener('click', function (e) {
-      if (state.user) {
-        e.preventDefault();
-        signOut(function () { location.reload(); });
-      }
-    });
-    document.body.appendChild(a);
+    var bar = document.createElement('div');
+    bar.id = BAR_ID;
+    bar.className = 'xx-api-bar';
+    var inner = document.querySelector('.nav__inner');
+    var burger = document.getElementById('burger');
+    if (inner) {
+      if (burger) inner.insertBefore(bar, burger);
+      else inner.appendChild(bar);
+    } else {
+      bar.classList.add('float');
+      document.body.appendChild(bar);
+    }
     updateBar();
   }
   function updateBar() {
     var bar = document.getElementById(BAR_ID);
     if (!bar) return;
+    bar.innerHTML = '';
     if (state.user && state.user.name) {
-      bar.textContent = '👤 ' + state.user.name + ' · 登出';
-      bar.className = 'xx-api-bar';
+      var me = document.createElement('span');
+      me.className = 'xx-api-bar__me';
+      me.textContent = '👤 ' + state.user.name;   // textContent 防注入
+      me.title = '已登录：' + state.user.name;    // 名字被省略号截断时，悬停/长按看全名
+      var out = document.createElement('button');
+      out.type = 'button';
+      out.className = 'xx-api-bar__out';
+      out.textContent = '退出';
+      out.addEventListener('click', function () {
+        signOut(function () { location.reload(); });
+      });
+      bar.appendChild(me);
+      bar.appendChild(out);
     } else {
-      bar.textContent = '👤 登录';
-      bar.className = 'xx-api-bar off';
+      var a = document.createElement('a');
+      a.className = 'xx-api-bar__btn';
+      a.href = 'login.html';
+      a.textContent = '👤 登录';
+      bar.appendChild(a);
     }
   }
 
@@ -369,8 +406,9 @@
   }
 
   /* 页面加载时挂出登录小挂件 + 恢复登录态 */
-  injectBar();
+  /* 先取本地 user 再 inject：本地有登录记录时挂件第一帧就是名字，不用等网络校验 */
   state.user = getUser();
+  injectBar();
+  updateBar();
   if (getToken()) ready(function () {});
-  else updateBar();
 })();
