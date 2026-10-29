@@ -25,7 +25,7 @@
     rps: 'big', eggy: 'big', estimate: 'big', flash: 'big',
     round: 'big', change: 'big', poem: 'big', angle: 'big',
     guessangle: 'big', ratio: 'big', clock: 'big', mirror: 'big',
-    mathspeed: 'big', mathrush: 'big'
+    mathspeed: 'big', mathrush: 'big', maze: 'big'
   };
   var NAMES = {
     schulte: '舒尔特方格', jump: '跳步舒尔特', rps: '剪子包袱锤', guess: '猜数字',
@@ -33,7 +33,7 @@
     flash: '数字快闪', '24': '24 点', round: '凑整口算', change: '购物找零',
     poem: '古诗填字', angle: '图形数角', guessangle: '预估角度',
     ratio: '比例相等', clock: '认识钟表', mirror: '光的反射',
-    mathspeed: '算力大脑计时版', mathrush: '算力大脑挑战版'
+    mathspeed: '算力大脑计时版', mathrush: '算力大脑挑战版', maze: '数字迷宫'
   };
 
   /* 服务器不通时游戏必须照常玩：所有请求都有超时，超时即视为失败，绝不阻塞游戏 */
@@ -53,7 +53,13 @@
     } catch (e) {}
   }
   function getUser() {
-    try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) { return null; }
+    try {
+      var u = JSON.parse(localStorage.getItem(USER_KEY));
+      // 老数据兜底：早期直接存了服务端返回的 {username, role}，没有 name 字段，
+      // 不转的话登录态恢复了但挂件还显示「👤 登录」
+      if (u && !u.name && u.username) u.name = u.username;
+      return u;
+    } catch (e) { return null; }
   }
   function setUser(u) {
     try {

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script>
+/* 强制 HTTPS：http 进来立刻换成 https，否则登录会失败 */
+(function(){var l=window.location;if(l.protocol!=="http:")return;var h=l.hostname;
+if(h==="localhost"||h==="0.0.0.0"||h==="::1"||/^\d+\.\d+\.\d+\.\d+$/.test(h)||h.slice(-6)===".local")return;
+l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字迷宫 🧭 曦曦的游戏屋</title>
+<meta name="description" content="走迷宫练口算：走对了把遇到的数字加起来，走错了减去这个数字，每走一步都有一道算式。三个等级，1/2/3 位数，得分越高越厉害！">
+<meta name="theme-color" content="#fbfef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/games.css">
+<style>
+/* ===== 数字迷宫 专属样式 ===== */
+/* 棋盘：格子正方形由 game-common.js 的 gameFitSquares 量宽设高（老内核没有 aspect-ratio）
+   宽度用 100% + max-width：直接用 vw 会忽略卡片的 padding，小屏被顶出横向滚动（踩过） */
+.mz-board{
+  display:grid;
+  grid-template-columns:repeat(var(--mz-cols,8),1fr);
+  gap:3px;margin:0 auto;
+  width:100%;max-width:460px;
+  touch-action:manipulation;
+}
+.mz-cell{
+  display:grid;place-items:center;
+  background:#fbfef8;
+  border:3px solid transparent;   /* 默认透明，有墙的那几条边才上色 */
+  font-family:inherit;font-weight:800;color:var(--leaf-deep);
+  font-size:clamp(13px,3.6vw,20px);
+  line-height:1;padding:0;cursor:pointer;overflow:hidden;
+  transition:background .25s var(--ease),color .25s var(--ease),box-shadow .2s var(--ease);
+}
+.mz-w-n{border-top-color:var(--leaf-deep);}
+.mz-w-s{border-bottom-color:var(--leaf-deep);}
+.mz-w-w{border-left-color:var(--leaf-deep);}
+.mz-w-e{border-right-color:var(--leaf-deep);}
+/* 大格子（一级 8×8、二级 10×10）数字可以更大 */
+.mz-board--lg .mz-cell{font-size:clamp(16px,4.6vw,25px);}
+.mz-board--md .mz-cell{font-size:clamp(14px,4vw,22px);}
+.mz-cell.is-done{background:#eafaf1;color:#7fae97;}
+.mz-cell.is-start{background:var(--mint-soft);color:var(--leaf-deep);}
+.mz-cell.is-end{background:var(--pink-soft);color:#c76287;}
+.mz-cell.is-now{
+  background:linear-gradient(135deg,var(--mint),#5cc38f);color:#fff;
+  box-shadow:0 0 0 3px rgba(126,214,168,.45);
+  z-index:1;
+}
+.mz-cell.is-now.is-start{color:#fff;}
+.mz-cell.is-now.is-end{color:#fff;}
+.mz-cell.is-bump{animation:mzBump .35s var(--ease);}
+@keyframes mzBump{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-4px);}50%{transform:translateX(4px);}75%{transform:translateX(-2px);}
+}
+
+/* 算式区：每走一步刷新一条算式 */
+.mz-formula{
+  margin:16px auto 0;max-width:460px;text-align:center;
+  background:#f8fdf9;border:2px dashed var(--mint);border-radius:var(--r-md);
+  padding:14px 12px;min-height:86px;
+}
+.mz-formula.is-flash{animation:pop .35s var(--ease);}
+.mz-f-main{margin:0;font-size:clamp(22px,5.6vw,30px);font-weight:900;line-height:1.25;}
+.mz-f-main b{color:var(--ink);padding:0 2px;}
+.mz-f-main i{font-style:normal;color:var(--ink-3);padding:0 6px;font-weight:800;}
+.mz-f-main .mz-f-new{color:var(--leaf-deep);}
+.mz-f-main.is-plus .mz-f-new{color:#2f9d6d;}
+.mz-f-main.is-minus .mz-f-new{color:#c0653f;}
+.mz-f-main.is-minus b{color:#c0653f;}
+.mz-f-main.is-skip b{color:var(--ink-2);font-size:clamp(18px,4.4vw,24px);}
+.mz-f-main.is-done b{color:var(--leaf-deep);}
+.mz-f-rec{font-style:normal;margin-left:8px;font-size:16px;color:#e8a0bf;}
+.mz-f-tip{margin:6px 0 0;font-size:14px;font-weight:700;color:var(--ink-3);}
+
+/* 方向盘：手机专用，桌面用键盘也能玩 */
+.mz-pad{
+  display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,52px);
+  gap:8px;justify-content:center;margin:18px auto 0;
+  touch-action:manipulation;
+}
+.mz-pad__btn{
+  font-family:inherit;cursor:pointer;
+  background:#fff;border:2px solid #bfe9d3;border-radius:16px;
+  font-size:22px;font-weight:900;color:var(--leaf-deep);
+  display:grid;place-items:center;padding:0;
+  box-shadow:var(--sh-sm);
+  transition:transform .12s ease,border-color .15s ease,background .15s ease;
+  -webkit-user-select:none;user-select:none;
+}
+.mz-pad__btn:hover{border-color:var(--mint);}
+.mz-pad__btn:active{transform:scale(.9);background:#eafaf1;}
+.mz-pad__btn--up{grid-column:2;grid-row:1;}
+.mz-pad__btn--left{grid-column:1;grid-row:2;}
+.mz-pad__btn--mid{grid-column:2;grid-row:2;border-style:dashed;color:var(--ink-3);font-size:15px;}
+.mz-pad__btn--right{grid-column:3;grid-row:2;}
+.mz-pad__btn--down{grid-column:2;grid-row:3;}
+
+.mz-actions{display:flex;justify-content:center;margin-top:18px;}
+@media (max-width:420px){
+  .mz-pad{grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,48px);}
+}
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html">
+      <span class="nav__logo-mark">🌸</span>
+      <span class="nav__logo-text">曦曦的空间</span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="games.html" class="is-active" aria-current="page">🎮 游戏屋</a>
+      <a href="index.html" class="nav__cta">回首页</a>
+    </nav>
+    <button class="nav__burger" id="burger" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="ghero ghero--mini">
+    <div class="ghero__content">
+      <p class="ghero__badge reveal">🧭 Game · 边走边算</p>
+      <h1 class="ghero__title reveal">数字<span class="ghero__title-accent">迷宫</span></h1>
+      <p class="ghero__sub reveal">迷宫里藏着好多数字！<strong>走对了就加起来，走错了要减去</strong>，每走一步都有一道算式。从 🌸 起点走到 🏁 终点，看看能拿多少分！</p>
+    </div>
+  </section>
+
+  <section class="section" id="play" style="padding-top:26px;">
+    <div class="wrap">
+      <div class="game-card reveal">
+
+        <div class="sg-sizes" id="mzSizes" role="group" aria-label="选择难度">
+          <button class="sg-size is-on" data-lv="1" type="button">⭐ 一位数<small>8×8 · 入门</small></button>
+          <button class="sg-size" data-lv="2" type="button">⭐⭐ 两位数<small>10×10 · 进阶</small></button>
+          <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 三位数<small>12×12 · 高手</small></button>
+        </div>
+
+        <div class="sg-stats" style="justify-content:center;">
+          <span class="sg-stat">🧮 当前得分 <b id="mzScore">0</b></span>
+          <span class="sg-stat">👣 步数 <b id="mzSteps">0</b></span>
+          <span class="sg-stat">⏱ 用时 <b id="mzTime">0.0 秒</b></span>
+          <span class="sg-stat">🏆 最佳 <b id="mzBest">—</b></span>
+          <span class="sg-stat">🎚 难度 <b id="mzLevel">⭐ 一位数</b></span>
+        </div>
+
+        <div class="mz-formula" id="mzFormula" aria-live="polite">
+          <p class="mz-f-main is-idle"><b>出发吧！</b></p>
+          <p class="mz-f-tip">每走一步，这里都会显示一道加减算式</p>
+        </div>
+
+        <div class="mz-board" id="mzBoard" style="--mz-cols:8;">
+          <p class="sg-placeholder">选好难度，点下面的按钮开始吧～ 🧭</p>
+        </div>
+
+        <!-- 方向盘：手机上点着走；电脑上用方向键或 WASD 也行 -->
+        <div class="mz-pad" id="mzPad" aria-label="方向键">
+          <button class="mz-pad__btn mz-pad__btn--up" data-dir="up" type="button" aria-label="向上走">▲</button>
+          <button class="mz-pad__btn mz-pad__btn--left" data-dir="left" type="button" aria-label="向左走">◀</button>
+          <span class="mz-pad__btn mz-pad__btn--mid" aria-hidden="true">🌸</span>
+          <button class="mz-pad__btn mz-pad__btn--right" data-dir="right" type="button" aria-label="向右走">▶</button>
+          <button class="mz-pad__btn mz-pad__btn--down" data-dir="down" type="button" aria-label="向下走">▼</button>
+        </div>
+
+        <div class="mz-actions">
+          <button class="btn btn--primary" id="mzStart" type="button">开始 ▶</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 本游戏排行榜（game-rank.js 自动渲染） -->
+  <section class="section section--tint" id="gameRank">
+    <div class="wrap">
+      <div class="gr-box"></div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="rules">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <p class="sec-head__kicker">How To Play</p>
+        <h2 class="sec-head__title">怎么玩？</h2>
+        <div class="sec-head__line" aria-hidden="true"><span></span><em>🧭</em><span></span></div>
+      </header>
+      <ol class="rules reveal">
+        <li>先选难度：<b>⭐ 一位数</b>（8×8）、<b>⭐⭐ 两位数</b>（10×10）、<b>⭐⭐⭐ 三位数</b>（12×12）。格子越大，数字越大！</li>
+        <li>从左上角的 <b>🌸 起点</b>出发，沿着通道走到右下角的 <b>🏁 终点</b>。绿色的粗线是墙，走不过去。</li>
+        <li>每格都有数字。<strong>第一次踩到某格时算账</strong>：
+          这一步<b>离终点更近了</b> → 数字<b>加起来</b> ✅；
+          <b>更远了</b> → 数字<b>减掉</b> 🤔。
+          重复踩已经踩过的格子不扣也不加。</li>
+        <li>每走一步，屏幕中间的卡片都会<b>实时显示一道算式</b>（比如 46 − 5 = 41），走对走错一眼就看到。</li>
+        <li>电脑上用<b>方向键</b>或 <b>W A S D</b> 走，手机上用<b>方向盘</b>，也可以直接点旁边的格子。</li>
+        <li>走到终点结算：<b>总分 = 数字分 × 1000 + 速度分</b>。走对的步数越多、走得越快，分越高！</li>
+        <li class="rules-tip">💡 小秘诀：死胡同走进去是要扣分的，探头看到此路不通就赶紧退回来；
+        同一条最短路里，<b>挑数字大的走</b>更划算哦！</li>
+        <li class="rules-tip">🤔 三种迷宫长得不一样：一级死路多、二级岔路多、三级特别开阔，
+        三位数那关特别考验加减法，慢慢算不着急～</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__deco" aria-hidden="true">
+    <img src="assets/img/butterflies.webp" alt="">
+  </div>
+  <div class="wrap footer__inner">
+    <p class="footer__name">🎮 曦曦的游戏屋</p>
+    <p class="footer__line">动动小手和小脑筋，每天都聪明一点点。</p>
+    <p class="footer__copy">© <span id="year"></span> 曦曦 · 我的小小游戏屋</p>
+  </div>
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/game-common.js"></script>
+<script src="assets/js/api-config.js"></script>
+<script src="assets/js/xixi-api.js"></script>
+<script src="assets/js/game-rank.js"></script>
+<script src="assets/js/game-maze.js"></script>
+</body>
+</html>
