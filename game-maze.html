@@ -10,7 +10,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>数字迷宫 🧭 曦曦的游戏屋</title>
-<meta name="description" content="走迷宫练口算：走对了把遇到的数字加起来，走错了减去这个数字，每走一步都有一道算式。三个等级，1/2/3 位数，得分越高越厉害！">
+<meta name="description" content="走迷宫练口算：每走一步都要答对一道算式，离终点更近是加法、更远是减法，答对才能继续走。三个等级，1/2/3 位数，走得越快分越高！">
 <meta name="theme-color" content="#fbfef8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/style.css">
@@ -18,7 +18,8 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 <style>
 /* ===== 数字迷宫 专属样式 ===== */
 /* 棋盘：格子正方形由 game-common.js 的 gameFitSquares 量宽设高（老内核没有 aspect-ratio）
-   宽度用 100% + max-width：直接用 vw 会忽略卡片的 padding，小屏被顶出横向滚动（踩过） */
+   宽度用 100% + max-width：直接用 vw 会忽略卡片的 padding，小屏被顶出横向滚动（踩过）
+   格子越多棋盘越宽，保证每格都够大——三级三位数也能完整显示 */
 .mz-board{
   display:grid;
   grid-template-columns:repeat(var(--mz-cols,8),1fr);
@@ -26,13 +27,17 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
   width:100%;max-width:460px;
   touch-action:manipulation;
 }
+.mz-board--lg{max-width:430px;}   /* 8 列 一位数 */
+.mz-board--md{max-width:510px;}   /* 10 列 两位数 */
+.mz-board--sm{max-width:560px;}   /* 12 列 三位数：格子大一点，数字才不挤 */
 .mz-cell{
   display:grid;place-items:center;
   background:#fbfef8;
-  border:3px solid transparent;   /* 默认透明，有墙的那几条边才上色 */
+  border:2px solid transparent;   /* 默认透明，有墙的那几条边才上色 */
   font-family:inherit;font-weight:800;color:var(--leaf-deep);
   font-size:clamp(13px,3.6vw,20px);
   line-height:1;padding:0;cursor:pointer;overflow:hidden;
+  white-space:nowrap;             /* 数字不许折行，避免三位数被拆两行 */
   transition:background .25s var(--ease),color .25s var(--ease),box-shadow .2s var(--ease);
 }
 .mz-w-n{border-top-color:var(--leaf-deep);}
@@ -42,6 +47,24 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 /* 大格子（一级 8×8、二级 10×10）数字可以更大 */
 .mz-board--lg .mz-cell{font-size:clamp(16px,4.6vw,25px);}
 .mz-board--md .mz-cell{font-size:clamp(14px,4vw,22px);}
+/* 三级 11×11：三位数字号单独调小，保证 3 位数字完整放得下（原来漏了这条，
+   走默认 clamp(13px,3.6vw,20px) 会把小格子里的三位数撑破） */
+.mz-board--sm .mz-cell{font-size:clamp(12px,3vw,16px);letter-spacing:-.5px;}
+@media (max-width:360px){
+  .mz-board--sm .mz-cell{font-size:clamp(10px,3vw,12px);}
+}
+/* 窄屏（≤400px）三级棋盘「出血」：撑破卡片内边距扩展到接近全宽。
+   320px 视口下卡片内只剩 236px，11 列每格内容区只有 ~15px，三位数必被裁；
+   出血后每格 ~18px，才能完整显示（42px = wrap 左右 padding 20 + 卡片左右 padding 22） */
+@media (max-width:400px){
+  .mz-board--sm{
+    margin-left:-42px;margin-right:-42px;
+    width:auto;               /* 老内核兜底：auto 宽度自动吃进负 margin */
+    width:calc(100% + 84px);
+    max-width:none;
+  }
+  .mz-board--sm .mz-cell{font-size:clamp(10px,2.8vw,12px);}
+}
 .mz-cell.is-done{background:#eafaf1;color:#7fae97;}
 .mz-cell.is-start{background:var(--mint-soft);color:var(--leaf-deep);}
 .mz-cell.is-end{background:var(--pink-soft);color:#c76287;}
@@ -104,6 +127,60 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 @media (max-width:420px){
   .mz-pad{grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,48px);}
 }
+
+/* ===== 答题弹层：答对才能走 ===== */
+.mz-quiz{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:rgba(38,60,48,.45);backdrop-filter:blur(3px);}
+.mz-quiz[hidden]{display:none;}
+.mz-quiz__card{
+  position:relative;width:100%;max-width:360px;text-align:center;
+  background:#fff;border:3px solid var(--mint);border-radius:var(--r-lg,20px);
+  box-shadow:var(--sh-lg);padding:26px 20px 20px;
+  animation:mzQuizIn .28s var(--ease);
+}
+@keyframes mzQuizIn{
+  from{opacity:0;transform:translateY(24px) scale(.96);}
+  to{opacity:1;transform:none;}
+}
+.mz-quiz__card.is-shake{animation:mzQuizShake .4s var(--ease);}
+@keyframes mzQuizShake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-9px);}40%{transform:translateX(9px);}
+  60%{transform:translateX(-5px);}80%{transform:translateX(5px);}
+}
+.mz-quiz__x{
+  position:absolute;top:10px;right:12px;width:32px;height:32px;
+  border:none;border-radius:50%;background:#f2f7f3;color:var(--ink-3);
+  font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;
+}
+.mz-quiz__x:hover{background:#e6f2ea;color:var(--leaf-deep);}
+.mz-quiz__dir{margin:0 0 10px;font-size:15px;font-weight:800;color:var(--ink-2);}
+.mz-quiz__dir.is-plus{color:#2f9d6d;}
+.mz-quiz__dir.is-minus{color:#c0653f;}
+.mz-quiz__expr{margin:0;font-size:clamp(30px,8vw,40px);font-weight:900;line-height:1.2;color:var(--ink);}
+.mz-quiz__expr b{padding:0 2px;}
+.mz-quiz__expr i{font-style:normal;color:var(--ink-3);padding:0 8px;font-weight:800;}
+.mz-quiz__dir.is-minus ~ .mz-quiz__expr b{color:#c0653f;}
+.mz-quiz__ans-v{color:#c0653f !important;margin-left:6px;}
+.mz-quiz__row{display:flex;gap:10px;justify-content:center;align-items:stretch;margin-top:16px;}
+.mz-quiz__input{
+  width:130px;padding:10px 12px;text-align:center;
+  font-family:inherit;font-size:24px;font-weight:900;color:var(--leaf-deep);
+  border:2px solid #bfe9d3;border-radius:14px;background:#f8fdf9;outline:none;
+  -webkit-appearance:none;appearance:none;
+}
+.mz-quiz__input:focus{border-color:var(--mint);background:#fff;}
+.mz-quiz__input::placeholder{color:#bcd8c6;font-weight:700;}
+.mz-quiz__ok{white-space:nowrap;font-size:16px;padding:0 20px;}
+.mz-quiz__ok:disabled{opacity:.55;cursor:default;}
+.mz-quiz__tip{margin:12px 0 0;font-size:14px;font-weight:700;color:var(--ink-3);min-height:20px;}
+.mz-quiz__tip.is-bad{color:#c0653f;}
+.mz-quiz__ansbtn{
+  margin-top:10px;padding:8px 16px;border:2px dashed #e3c9a8;border-radius:999px;
+  background:#fffaf2;color:#b07d3c;font-size:13.5px;font-weight:800;
+  font-family:inherit;cursor:pointer;
+}
+.mz-quiz__ansbtn:hover{background:#fff3e0;}
 </style>
 </head>
 <body>
@@ -132,7 +209,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
     <div class="ghero__content">
       <p class="ghero__badge reveal">🧭 Game · 边走边算</p>
       <h1 class="ghero__title reveal">数字<span class="ghero__title-accent">迷宫</span></h1>
-      <p class="ghero__sub reveal">迷宫里藏着好多数字！<strong>走对了就加起来，走错了要减去</strong>，每走一步都有一道算式。从 🌸 起点走到 🏁 终点，看看能拿多少分！</p>
+      <p class="ghero__sub reveal">迷宫里藏着好多数字！<strong>每走一步都要先答对一道算式</strong>：离终点更近就加法，更远就减法。从 🌸 起点走到 🏁 终点，走得越快分越高！</p>
     </div>
   </section>
 
@@ -143,7 +220,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
         <div class="sg-sizes" id="mzSizes" role="group" aria-label="选择难度">
           <button class="sg-size is-on" data-lv="1" type="button">⭐ 一位数<small>8×8 · 入门</small></button>
           <button class="sg-size" data-lv="2" type="button">⭐⭐ 两位数<small>10×10 · 进阶</small></button>
-          <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 三位数<small>12×12 · 高手</small></button>
+          <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 三位数<small>11×11 · 高手</small></button>
         </div>
 
         <div class="sg-stats" style="justify-content:center;">
@@ -194,17 +271,18 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
         <div class="sec-head__line" aria-hidden="true"><span></span><em>🧭</em><span></span></div>
       </header>
       <ol class="rules reveal">
-        <li>先选难度：<b>⭐ 一位数</b>（8×8）、<b>⭐⭐ 两位数</b>（10×10）、<b>⭐⭐⭐ 三位数</b>（12×12）。格子越大，数字越大！</li>
+        <li>先选难度：<b>⭐ 一位数</b>（8×8）、<b>⭐⭐ 两位数</b>（10×10）、<b>⭐⭐⭐ 三位数</b>（11×11，格子更大，数字也更大！）。</li>
         <li>从左上角的 <b>🌸 起点</b>出发，沿着通道走到右下角的 <b>🏁 终点</b>。绿色的粗线是墙，走不过去。</li>
-        <li>每格都有数字。<strong>第一次踩到某格时算账</strong>：
-          这一步<b>离终点更近了</b> → 数字<b>加起来</b> ✅；
-          <b>更远了</b> → 数字<b>减掉</b> 🤔。
-          重复踩已经踩过的格子不扣也不加。</li>
-        <li>每走一步，屏幕中间的卡片都会<b>实时显示一道算式</b>（比如 46 − 5 = 41），走对走错一眼就看到。</li>
+        <li><strong>每走一步，都要先答对一道算式才能继续走</strong>：
+          这一步<b>离终点更近</b> → 出<b>加法题</b>（当前得分 + 数字），答对就<b>加进来</b> ✅；
+          <b>更远了</b> → 出<b>减法题</b>（当前得分 − 数字），答对才能走，这个数字<b>减掉</b> 🤔。</li>
+        <li>走回头路、绕远路都会离终点更远，要扣分；踩过的格子会变浅绿色，一眼看清。
+          答错了可以重新算；实在不会就点「💡 看看正确答案」，但这步按走错扣分。
+          点右上角「✕」可以放弃这一步，不扣分，换条路走。</li>
         <li>电脑上用<b>方向键</b>或 <b>W A S D</b> 走，手机上用<b>方向盘</b>，也可以直接点旁边的格子。</li>
-        <li>走到终点结算：<b>总分 = 数字分 × 1000 + 速度分</b>。走对的步数越多、走得越快，分越高！</li>
-        <li class="rules-tip">💡 小秘诀：死胡同走进去是要扣分的，探头看到此路不通就赶紧退回来；
-        同一条最短路里，<b>挑数字大的走</b>更划算哦！</li>
+        <li>走到终点结算：<b>总分 = 数字分 × 1000 + 速度分</b>。答对越多、走得越快，分越高！</li>
+        <li class="rules-tip">💡 小秘诀：死胡同走进去是要扣分的，探头看到此路不通就赶紧退回来（退回来也要答对减法题哦）；
+        同一条最短路里，<b>挑数字大的走</b>更划算！</li>
         <li class="rules-tip">🤔 三种迷宫长得不一样：一级死路多、二级岔路多、三级特别开阔，
         三位数那关特别考验加减法，慢慢算不着急～</li>
       </ol>
@@ -225,6 +303,23 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 </footer>
 
 <button class="totop" id="toTop" aria-label="回到顶部">🌸</button>
+
+<!-- 答题弹层：每走到一个新格子就弹出来，答对才能继续走。
+     放在 body 末尾，避开 .game-card 的 reveal 动画 transform（fixed 定位会失效） -->
+<div class="mz-quiz" id="mzQuiz" hidden>
+  <div class="mz-quiz__card" id="mzQuizCard">
+    <button class="mz-quiz__x" id="mzQuizX" type="button" aria-label="放弃这一步">✕</button>
+    <p class="mz-quiz__dir" id="mzQuizDir">🎯 这一步离终点更近</p>
+    <p class="mz-quiz__expr" id="mzQuizExpr"><b>0</b><i>+</i><b>7</b><i>=</i></p>
+    <div class="mz-quiz__row">
+      <input class="mz-quiz__input" id="mzQuizInput" type="text" inputmode="numeric"
+             autocomplete="off" placeholder="?" maxlength="7" aria-label="输入答案">
+      <button class="btn btn--primary mz-quiz__ok" id="mzQuizOk" type="button">提交</button>
+    </div>
+    <p class="mz-quiz__tip" id="mzQuizTip">答对才能走哦～</p>
+    <button class="mz-quiz__ansbtn" id="mzQuizAns" type="button" hidden>💡 看看正确答案</button>
+  </div>
+</div>
 
 <script src="assets/js/main.js"></script>
 <script src="assets/js/game-common.js"></script>
