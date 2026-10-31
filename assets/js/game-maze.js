@@ -21,10 +21,18 @@
    满分数字和 = 最短路径上的数字之和 —— 有策略：先探路再走。
    走回头路会离终点更远，是要扣分的，所以别乱逛。
 
-   三种生成算法对应三个难度（比参考图更复杂）：
-     1 位数  8×8  递归回溯   长路径、死路多，试探代价高
-     1~2位数 10×10 随机 Prim 分支多、主路径短，选择更多
-     1~3位数 11×11 随机 Kruskal 开放、拐弯少、格子多，口算量大
+   三种生成算法对应三个难度：
+     1 位数  8×8  递归回溯   长走廊、死路多，试探代价高
+     1~2位数 10×10 随机 Prim 短分支多、岔口密，选择更多
+     1~3位数 11×11 随机 Kruskal 走廊碎、拐弯多，格子多、口算量大
+
+   ⚠️ 重要：三种算法生成的都是「完美迷宫」——任意两格之间**只有唯一一条
+   通路**，不做任何额外打通。这是「迷宫感」的来源：走进死路就必须原路
+   退回来，没有捷径可绕。曾经为了「让减法题更容易出现」而在生成后随机
+   打通 5~9 面墙造环路，结果三岔口比例从 10% 涨到 21%~31%，到处都能
+   绕圈穿过去，完全不像迷宫了 —— 已彻底去掉。
+   减法题根本不需要环路：完美迷宫里除了唯一正确的那条路，走任何岔路都
+   是「离终点更远」，自然就是减法题。
 
    操作：方向键 / WASD，手机用屏幕方向盘，也可以直接点旁边的格子。
    ========================================================= */
@@ -50,7 +58,6 @@
   };
   var ALGO  = { 1: 'backtrack', 2: 'prim', 3: 'kruskal' };
   var LV_TXT = { 1: '⭐ 一位数', 2: '⭐⭐ 一~两位数', 3: '⭐⭐⭐ 一~三位数' };
-  var LOOPS = { 1: 5, 2: 7, 3: 9 };              // 生成后额外打通的墙数（环路数）
 
   var NUM_UNIT = 1000;     // 数字分权重，必须大于速度分上限
   var SPD_MAX  = 999;      // 速度分上限
@@ -119,13 +126,13 @@
   }
 
   /* =========================================================
-     迷宫生成（三个经典算法，先产出「完美迷宫」：任意两格连通且唯一路径，
-     再随机打通几面墙形成环路）
-     —— 为什么要加环路：完美迷宫是树结构，相邻两格到终点的距离恒差 1，
-     「走远」在数学上不可能发生，减法题永远出不来。有了环路，
-     环上就会出现「距离相等」的相邻格，走远扣分的机制才真正存在，
-     迷宫也更有得绕（更复杂更好玩）。
-     ========================================================= */  function newCells(rows_, cols_) {
+     迷宫生成（三个经典算法，都产出「完美迷宫」）
+     —— 完美迷宫 = 任意两格连通且**只有唯一一条路**、没有环路。
+        这正是迷宫该有的样子：走进死路只能原路退回，不能绕圈抄近道。
+     —— 减法题不靠环路也能出：唯一正确路径之外的岔路都「离终点更远」，
+        走进去就是减法题。
+     ========================================================= */
+  function newCells(rows_, cols_) {
     var cs = [];
     for (var r = 0; r < rows_; r++) {
       cs.push([]);
@@ -234,23 +241,6 @@
     }
   }
 
-  /* 随机加环：挑几面现成的墙打通，制造「绕圈也能到」的环路 */
-  function addLoops(n) {
-    var added = 0, tries = 0;
-    while (added < n && tries < n * 60) {
-      tries++;
-      var r = rnd(0, rows - 1), c = rnd(0, cols - 1);
-      var d = rnd(0, 3);
-      var dr = d === 0 ? -1 : (d === 1 ? 1 : 0);
-      var dc = d === 2 ? -1 : (d === 3 ? 1 : 0);
-      var nr = r + dr, nc = c + dc;
-      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
-      if (!wallBetween(r, c, dr, dc)) continue;   // 已经通了，换一面
-      knock({ r: r, c: c }, { r: nr, c: nc });
-      added++;
-    }
-  }
-
   /* =========================================================
      BFS：距离场 / 最远点
      ========================================================= */
@@ -287,7 +277,7 @@
     if (ALGO[lv] === 'backtrack') genBacktrack();
     else if (ALGO[lv] === 'prim') genPrim();
     else genKruskal();
-    addLoops(LOOPS[lv]);   // 加环路，让「走远扣分」有可能发生
+    // 不打通任何额外的墙：保持完美迷宫（唯一通路），这才是迷宫
 
     // 起点固定左上；终点取从起点出发最远的格子（路径最长才好玩）
     startPt = { r: 0, c: 0 };
@@ -580,6 +570,26 @@
   /* =========================================================
      渲染
      ========================================================= */
+  /* 生成一格的 class 字符串。
+     - mz-w-n/s/e/w：语义标记「这面有墙」，四面都标（逻辑和测试要用）
+     - mz-d-n/s/e/w：实际绘制用的边框，**每面墙只画一次**：
+       上、左归本格，下边只在最后一行补，右边只在最后一列补。
+       否则同一面墙被左右两格各画一次，中间夹着棋盘缝隙，
+       整张图就成了「一堆各自带小方框的格子」，完全没有迷宫墙的感觉。 */
+  function wallsOf(r, c) {
+    var cell = cells[r][c];
+    var s = '';
+    if (cell.n) s += ' mz-w-n';
+    if (cell.s) s += ' mz-w-s';
+    if (cell.e) s += ' mz-w-e';
+    if (cell.w) s += ' mz-w-w';
+    if (cell.n) s += ' mz-d-n';
+    if (cell.w) s += ' mz-d-w';
+    if (r === rows - 1 && cell.s) s += ' mz-d-s';
+    if (c === cols - 1 && cell.e) s += ' mz-d-e';
+    return s;
+  }
+
   function renderBoard() {
     boardEl.innerHTML = '';
     boardEl.style.setProperty('--mz-cols', String(cols));
@@ -592,11 +602,7 @@
         (function (rr, cc) {
           var cell = cells[rr][cc];
           var el = document.createElement('div');
-          el.className = 'mz-cell';
-          if (cell.n) el.classList.add('mz-w-n');
-          if (cell.s) el.classList.add('mz-w-s');
-          if (cell.e) el.classList.add('mz-w-e');
-          if (cell.w) el.classList.add('mz-w-w');
+          el.className = 'mz-cell' + wallsOf(rr, cc);
           if (rr === endPt.r && cc === endPt.c) {
             el.classList.add('is-end');
             el.textContent = '终';
@@ -624,11 +630,7 @@
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
         var el = cellEls[idx(r, c)];
-        var cls = 'mz-cell';
-        if (cells[r][c].n) cls += ' mz-w-n';
-        if (cells[r][c].s) cls += ' mz-w-s';
-        if (cells[r][c].e) cls += ' mz-w-e';
-        if (cells[r][c].w) cls += ' mz-w-w';
+        var cls = 'mz-cell' + wallsOf(r, c);
         if (r === startPt.r && c === startPt.c) cls += ' is-start';
         if (r === endPt.r && c === endPt.c) cls += ' is-end';
         if (visited[idx(r, c)]) cls += ' is-done';

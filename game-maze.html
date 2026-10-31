@@ -23,7 +23,11 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .mz-board{
   display:grid;
   grid-template-columns:repeat(var(--mz-cols,8),1fr);
-  gap:3px;margin:0 auto;
+  /* 格子必须紧贴（gap 0）：墙是画在格子边框上的，格子之间只要留缝，
+     墙线就会在缝里断成一截一截的短线段，看着像「漂浮的小方格」，
+     完全没有连续墙壁的迷宫感。无缝之后墙线才连成整条，
+     而通道处边框是透明的（显示格子自己的底色），相邻格子自然连成一片。 */
+  gap:0;margin:0 auto;
   width:100%;max-width:460px;
   touch-action:manipulation;
 }
@@ -33,25 +37,35 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .mz-cell{
   display:grid;place-items:center;
   background:#fbfef8;
-  border:2px solid transparent;   /* 默认透明，有墙的那几条边才上色 */
+  /* 墙用边框画：默认透明，有墙的那几条边才上深绿。
+     3px 而不是 2px —— 手机上 2px 的墙太细，格子之间看着「到处都能穿过去」，
+     加粗一档后通道和墙的对比才清楚，迷宫感回来 */
+  border:3px solid transparent;
   font-family:inherit;font-weight:800;color:var(--leaf-deep);
-  font-size:clamp(13px,3.6vw,20px);
+  font-size:15px;font-size:clamp(13px,3.6vw,20px);
   line-height:1;padding:0;cursor:pointer;overflow:hidden;
   white-space:nowrap;             /* 数字不许折行，避免三位数被拆两行 */
   transition:background .25s var(--ease),color .25s var(--ease),box-shadow .2s var(--ease);
 }
-.mz-w-n{border-top-color:var(--leaf-deep);}
-.mz-w-s{border-bottom-color:var(--leaf-deep);}
-.mz-w-w{border-left-color:var(--leaf-deep);}
-.mz-w-e{border-right-color:var(--leaf-deep);}
-/* 大格子（一级 8×8、二级 10×10）数字可以更大 */
-.mz-board--lg .mz-cell{font-size:clamp(16px,4.6vw,25px);}
-.mz-board--md .mz-cell{font-size:clamp(14px,4vw,22px);}
+/* 墙的绘制：每面墙**只画一次** —— 上/左归本格，下边只在最后一行补、
+   右边只在最后一列补（由 JS 加 mz-d-* 类）。
+   如果让左右两格各画各的边框，同一面墙会变成「两条细线夹 3px 白缝」，
+   整张图看起来就是一堆各自带框的小方块，完全没有迷宫墙的感觉。
+   语义类 .mz-w-* 只用来标记「这边有墙」，不上色。 */
+.mz-d-n{border-top-color:var(--leaf-deep);}
+.mz-d-s{border-bottom-color:var(--leaf-deep);}
+.mz-d-w{border-left-color:var(--leaf-deep);}
+.mz-d-e{border-right-color:var(--leaf-deep);}
+/* 大格子（一级 8×8、二级 10×10）数字可以更大。
+   每条 clamp 前面都写一行普通值兜底 —— 老内核会整条丢弃 clamp()，
+   没有兜底就退回继承字号，三位数会被 overflow:hidden 裁掉。 */
+.mz-board--lg .mz-cell{font-size:20px;font-size:clamp(16px,4.6vw,25px);}
+.mz-board--md .mz-cell{font-size:17px;font-size:clamp(14px,4vw,22px);}
 /* 三级 11×11：三位数字号单独调小，保证 3 位数字完整放得下（原来漏了这条，
    走默认 clamp(13px,3.6vw,20px) 会把小格子里的三位数撑破） */
-.mz-board--sm .mz-cell{font-size:clamp(12px,3vw,16px);letter-spacing:-.5px;}
+.mz-board--sm .mz-cell{font-size:13px;font-size:clamp(12px,3vw,16px);letter-spacing:-.5px;}
 @media (max-width:360px){
-  .mz-board--sm .mz-cell{font-size:clamp(10px,3vw,12px);}
+  .mz-board--sm .mz-cell{font-size:10px;font-size:clamp(10px,3vw,12px);}
 }
 /* 窄屏（≤400px）三级棋盘「出血」：撑破卡片内边距扩展到接近全宽。
    320px 视口下卡片内只剩 236px，11 列每格内容区只有 ~15px，三位数必被裁；
@@ -292,7 +306,8 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
       <ol class="rules reveal">
         <li>先选难度：<b>⭐ 一位数</b>（8×8，全是一位数）、<b>⭐⭐ 一~两位数</b>（10×10，一位数和两位数都有）、
           <b>⭐⭐⭐ 一~三位数</b>（11×11，一位数到三位数全都有，格子也更大）。</li>
-        <li>从左上角的 <b>🌸 起点</b>出发，沿着通道走到右下角的 <b>🏁 终点</b>。绿色的粗线是墙，走不过去。</li>
+        <li>从左上角的 <b>🌸 起点</b>出发，沿着通道走到 <b>🏁 终点</b>。深绿色的粗线是墙，走不过去。
+          每条迷宫都<b>只有唯一一条路能到终点</b>，没有捷径可抄 —— 走错了就得退回来。</li>
         <li><strong>每走一步，都要先答对一道算式才能继续走</strong>：
           这一步<b>离终点更近</b> → 出<b>加法题</b>（当前得分 + 数字），答对就<b>加进来</b> ✅；
           <b>更远了</b> → 出<b>减法题</b>（当前得分 − 数字），答对才能走，这个数字<b>减掉</b> 🤔。</li>
@@ -308,7 +323,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
         <li>走到终点结算：<b>总分 = 数字分 × 1000 + 速度分</b>。答对越多、走得越快，分越高！</li>
         <li class="rules-tip">💡 小秘诀：死胡同走进去是要扣分的，探头看到此路不通就赶紧退回来（退回来也要答对减法题哦）；
         同一条最短路里，<b>挑数字大的走</b>更划算！</li>
-        <li class="rules-tip">🤔 三种迷宫长得不一样：一级死路多、二级岔路多、三级特别开阔，
+        <li class="rules-tip">🤔 三种迷宫长得不一样：一级走廊长、死路多，二级岔路密，三级走廊碎、格子多，
         数字越大口算越难，慢慢算不着急～</li>
       </ol>
     </div>
