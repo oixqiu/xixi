@@ -10,7 +10,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>数字迷宫 🧭 曦曦的游戏屋</title>
-<meta name="description" content="走迷宫练口算：每走一步都要答对一道算式，离终点更近是加法、更远是减法，答对才能继续走。三个等级，1/2/3 位数，走得越快分越高！">
+<meta name="description" content="走迷宫练口算：每走一步都要答对一道算式，离终点更近是加法、更远是减法，答对才能继续走。三个等级，数字位数逐级混合，走得越快分越高，还会学到负数！">
 <meta name="theme-color" content="#fbfef8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/style.css">
@@ -68,6 +68,12 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .mz-cell.is-done{background:#eafaf1;color:#7fae97;}
 .mz-cell.is-start{background:var(--mint-soft);color:var(--leaf-deep);}
 .mz-cell.is-end{background:var(--pink-soft);color:#c76287;}
+/* 错误路线：这一格算出来是负数 → 标红警示，别再往这儿走 */
+.mz-cell.is-danger{
+  background:#fff0ee;color:#d9604f;
+  box-shadow:inset 0 0 0 2px rgba(217,96,79,.45);
+}
+.mz-cell.is-danger.is-done{background:#ffe6e2;color:#d9604f;}
 .mz-cell.is-now{
   background:linear-gradient(135deg,var(--mint),#5cc38f);color:#fff;
   box-shadow:0 0 0 3px rgba(126,214,168,.45);
@@ -95,6 +101,9 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .mz-f-main.is-plus .mz-f-new{color:#2f9d6d;}
 .mz-f-main.is-minus .mz-f-new{color:#c0653f;}
 .mz-f-main.is-minus b{color:#c0653f;}
+.mz-f-main.is-neg b{color:#d9604f;}
+.mz-f-main.is-neg .mz-f-new{color:#d9604f;}
+.mz-f-main.is-neg i{color:#d9604f;}
 .mz-f-main.is-skip b{color:var(--ink-2);font-size:clamp(18px,4.4vw,24px);}
 .mz-f-main.is-done b{color:var(--leaf-deep);}
 .mz-f-rec{font-style:normal;margin-left:8px;font-size:16px;color:#e8a0bf;}
@@ -163,6 +172,16 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 .mz-quiz__dir.is-minus ~ .mz-quiz__expr b{color:#c0653f;}
 .mz-quiz__ans-v{color:#c0653f !important;margin-left:6px;}
 .mz-quiz__row{display:flex;gap:10px;justify-content:center;align-items:stretch;margin-top:16px;}
+/* 负号按钮：手机数字键盘没有负号，用它一键加/去负号 */
+.mz-quiz__neg{
+  width:46px;flex:0 0 46px;
+  font-family:inherit;font-size:22px;font-weight:900;color:var(--leaf-deep);
+  border:2px solid #bfe9d3;border-radius:14px;background:#fff;
+  cursor:pointer;-webkit-appearance:none;appearance:none;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
+}
+.mz-quiz__neg:hover{background:#eafaf1;}
+.mz-quiz__neg.is-on{background:#ffe6e2;border-color:#e8a89a;color:#d9604f;}
 .mz-quiz__input{
   width:130px;padding:10px 12px;text-align:center;
   font-family:inherit;font-size:24px;font-weight:900;color:var(--leaf-deep);
@@ -219,8 +238,8 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
 
         <div class="sg-sizes" id="mzSizes" role="group" aria-label="选择难度">
           <button class="sg-size is-on" data-lv="1" type="button">⭐ 一位数<small>8×8 · 入门</small></button>
-          <button class="sg-size" data-lv="2" type="button">⭐⭐ 两位数<small>10×10 · 进阶</small></button>
-          <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 三位数<small>11×11 · 高手</small></button>
+          <button class="sg-size" data-lv="2" type="button">⭐⭐ 一~两位数<small>10×10 · 进阶</small></button>
+          <button class="sg-size" data-lv="3" type="button">⭐⭐⭐ 一~三位数<small>11×11 · 高手</small></button>
         </div>
 
         <div class="sg-stats" style="justify-content:center;">
@@ -271,11 +290,17 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
         <div class="sec-head__line" aria-hidden="true"><span></span><em>🧭</em><span></span></div>
       </header>
       <ol class="rules reveal">
-        <li>先选难度：<b>⭐ 一位数</b>（8×8）、<b>⭐⭐ 两位数</b>（10×10）、<b>⭐⭐⭐ 三位数</b>（11×11，格子更大，数字也更大！）。</li>
+        <li>先选难度：<b>⭐ 一位数</b>（8×8，全是一位数）、<b>⭐⭐ 一~两位数</b>（10×10，一位数和两位数都有）、
+          <b>⭐⭐⭐ 一~三位数</b>（11×11，一位数到三位数全都有，格子也更大）。</li>
         <li>从左上角的 <b>🌸 起点</b>出发，沿着通道走到右下角的 <b>🏁 终点</b>。绿色的粗线是墙，走不过去。</li>
         <li><strong>每走一步，都要先答对一道算式才能继续走</strong>：
           这一步<b>离终点更近</b> → 出<b>加法题</b>（当前得分 + 数字），答对就<b>加进来</b> ✅；
           <b>更远了</b> → 出<b>减法题</b>（当前得分 − 数字），答对才能走，这个数字<b>减掉</b> 🤔。</li>
+        <li class="rules-tip">🧠 <b>学负数</b>：减法题的答案<b>可能是负数</b>（比如 3 − 8 = −5）。
+          答案前面带负号时，点输入框左边的 <b>±</b> 按钮就能加上负号。
+          负数表示「比 0 还少」——算出来是负数，说明这条是<b>错误路线</b>，
+          <b>这一步就不让你走了</b>，格子会标成红色 🚫，换一条路继续！
+          （红色只是提醒，不是死路：以后分数够了再走进去，照样能过。）</li>
         <li>走回头路、绕远路都会离终点更远，要扣分；踩过的格子会变浅绿色，一眼看清。
           答错了可以重新算；实在不会就点「💡 看看正确答案」，但这步按走错扣分。
           点右上角「✕」可以放弃这一步，不扣分，换条路走。</li>
@@ -284,7 +309,7 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
         <li class="rules-tip">💡 小秘诀：死胡同走进去是要扣分的，探头看到此路不通就赶紧退回来（退回来也要答对减法题哦）；
         同一条最短路里，<b>挑数字大的走</b>更划算！</li>
         <li class="rules-tip">🤔 三种迷宫长得不一样：一级死路多、二级岔路多、三级特别开阔，
-        三位数那关特别考验加减法，慢慢算不着急～</li>
+        数字越大口算越难，慢慢算不着急～</li>
       </ol>
     </div>
   </section>
@@ -311,11 +336,12 @@ l.replace("https://"+l.host+l.pathname+l.search+l.hash);})();
     <button class="mz-quiz__x" id="mzQuizX" type="button" aria-label="放弃这一步">✕</button>
     <p class="mz-quiz__dir" id="mzQuizDir">🎯 这一步离终点更近</p>
     <p class="mz-quiz__expr" id="mzQuizExpr"><b>0</b><i>+</i><b>7</b><i>=</i></p>
-    <div class="mz-quiz__row">
-      <input class="mz-quiz__input" id="mzQuizInput" type="text" inputmode="numeric"
-             autocomplete="off" placeholder="?" maxlength="7" aria-label="输入答案">
-      <button class="btn btn--primary mz-quiz__ok" id="mzQuizOk" type="button">提交</button>
-    </div>
+            <div class="mz-quiz__row">
+              <button class="mz-quiz__neg" id="mzQuizNeg" type="button" aria-label="加上负号">±</button>
+              <input class="mz-quiz__input" id="mzQuizInput" type="text" inputmode="numeric"
+                     autocomplete="off" placeholder="?" maxlength="7" aria-label="输入答案">
+              <button class="btn btn--primary mz-quiz__ok" id="mzQuizOk" type="button">提交</button>
+            </div>
     <p class="mz-quiz__tip" id="mzQuizTip">答对才能走哦～</p>
     <button class="mz-quiz__ansbtn" id="mzQuizAns" type="button" hidden>💡 看看正确答案</button>
   </div>

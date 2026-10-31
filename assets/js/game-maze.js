@@ -7,6 +7,11 @@
          答对：数字累加
        - 离终点更远/没近 = 走错 → 减法题：当前得分 − 数字 = ？
          答对才能走，这个数字扣掉
+       - 减法可能出现「负数」答案（例如 5 − 12 = −7）。
+         负数表示「比 0 还少」——故意走错方向就会撞上它，
+         这正是学负数的好机会。
+       - 一旦这一步算出来是负数 → 不让走这步！
+         给出「这是错误路线」，格子标成危险格，换条路继续。
        - 答错可以重试；也可以点「看答案」，这步就按走错扣分
        走到终点后：总分 = 数字分 × 1000 + 速度分，越高越厉害。
 
@@ -18,8 +23,8 @@
 
    三种生成算法对应三个难度（比参考图更复杂）：
      1 位数  8×8  递归回溯   长路径、死路多，试探代价高
-     2 位数 10×10 随机 Prim  分支多、主路径短，选择更多
-     3 位数 11×11 随机 Kruskal 开放、拐弯少、格子多，口算量大
+     1~2位数 10×10 随机 Prim 分支多、主路径短，选择更多
+     1~3位数 11×11 随机 Kruskal 开放、拐弯少、格子多，口算量大
 
    操作：方向键 / WASD，手机用屏幕方向盘，也可以直接点旁边的格子。
    ========================================================= */
@@ -35,9 +40,16 @@
   // 三级用 11×11 而不是 12×12：三位数字要完整显示，格子必须够大
   // （12 列在 420px 手机上每格内容区只剩 ~19px，三位数会被裁）
   var SIZE  = { 1: 8, 2: 10, 3: 11 };                // 每关行=列
-  var RANGE = { 1: [1, 9], 2: [10, 99], 3: [100, 999] }; // 数字范围
+  /* 数字位数分布（按权重随机挑区间，区间内再随机）：
+     一级全是 1 位数；二级 1~2 位数混合；三级 1~3 位数混合。
+     每一项 = [最小值, 最大值, 权重] */
+  var DIGIT_MIX = {
+    1: [[1, 9, 1]],
+    2: [[1, 9, 0.4], [10, 99, 0.6]],
+    3: [[1, 9, 0.2], [10, 99, 0.3], [100, 999, 0.5]]
+  };
   var ALGO  = { 1: 'backtrack', 2: 'prim', 3: 'kruskal' };
-  var LV_TXT = { 1: '⭐ 一位数', 2: '⭐⭐ 两位数', 3: '⭐⭐⭐ 三位数' };
+  var LV_TXT = { 1: '⭐ 一位数', 2: '⭐⭐ 一~两位数', 3: '⭐⭐⭐ 一~三位数' };
   var LOOPS = { 1: 5, 2: 7, 3: 9 };              // 生成后额外打通的墙数（环路数）
 
   var NUM_UNIT = 1000;     // 数字分权重，必须大于速度分上限
@@ -58,6 +70,7 @@
   var quizInput = document.getElementById('mzQuizInput');
   var quizOk   = document.getElementById('mzQuizOk');
   var quizAns  = document.getElementById('mzQuizAns');
+  var quizNeg  = document.getElementById('mzQuizNeg');
   var quizX    = document.getElementById('mzQuizX');
   var elScore  = document.getElementById('mzScore');
   var elSteps  = document.getElementById('mzSteps');
@@ -76,7 +89,8 @@
   var startPt = null, endPt = null;
   var player = null;       // { r, c }
   var visited = null;      // 是否已结算过（idx → bool）
-  var score = 0;           // 当前累计和（可为负）
+  var danger = null;       // 走出负数的「错误路线」（idx → bool），格子标红警示
+  var score = 0;           // 当前累计和（永远 ≥ 0：算出会变负数就不让走）
   var steps = 0;           // 总步数
   var plusN = 0, minusN = 0;             // 走对/走错步数
   var shortest = 0;        // 起点到终点的最短步数
@@ -87,6 +101,22 @@
   var pending = null;      // 待走的这一步 { dr, dc, nr, nc, num, isPlus, ans, wrong }
 
   function rnd(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+
+  /* 按权重抽一个「位数区间」，再在区间内随机取数。
+     一级全是 1 位数；二级 1~2 位数混；三级 1~3 位数混。
+     这样孩子每一关都能练到不同位数的口算。 */
+  function rollNum(lv) {
+    var mix = DIGIT_MIX[lv] || DIGIT_MIX[1];
+    var total = 0, i;
+    for (i = 0; i < mix.length; i++) total += mix[i][2];
+    var x = Math.random() * total;
+    for (i = 0; i < mix.length; i++) {
+      x -= mix[i][2];
+      if (x < 0) return rnd(mix[i][0], mix[i][1]);
+    }
+    var last = mix[mix.length - 1];
+    return rnd(last[0], last[1]);
+  }
 
   /* =========================================================
      迷宫生成（三个经典算法，先产出「完美迷宫」：任意两格连通且唯一路径，
@@ -273,17 +303,17 @@
     dist = bfsFrom(endPt.r, endPt.c);
 
     // 填数字：只有终点不填（走回去也要算账，起点也得有数字）
-    var lo = RANGE[lv][0], hi = RANGE[lv][1];
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
         if (r === endPt.r && c === endPt.c) continue;
-        cells[r][c].num = rnd(lo, hi);
+        cells[r][c].num = rollNum(lv);
       }
     }
 
     player = { r: startPt.r, c: startPt.c };
     visited = {};
     visited[idx(startPt.r, startPt.c)] = true;
+    danger = {};
     score = 0;
     steps = 0;
     plusN = minusN = 0;
@@ -331,23 +361,20 @@
   function openQuiz(dr, dc, nr, nc, newIdx) {
     var num = cells[nr][nc].num;
     var isPlus = dist[newIdx] < dist[idx(player.r, player.c)];   // 离终点更近 = 走对
-    var a, b, ans;
-    if (isPlus) {
-      a = score; b = num; ans = score + num;
-    } else if (score >= num) {
-      a = score; b = num; ans = score - num;      // 正常减法题
-    } else {
-      a = num; b = score; ans = num - score;      // 得分不够减时换成大减小，答案不出负数
-    }
+    // 加法题：得分 + 数字（永远是正数）
+    // 减法题：得分 − 数字（**可能是负数**，这是学负数的机会，不做大减小翻转）
+    var ans = isPlus ? (score + num) : (score - num);
     pending = { dr: dr, dc: dc, nr: nr, nc: nc, num: num, isPlus: isPlus, ans: ans, wrong: 0, locked: false };
 
     quizDir.textContent = isPlus ? '🎯 这一步离终点更近，算对就把它加进来！'
                                  : '⚠️ 这一步离终点更远，算对才能走（要扣掉哦）';
     quizDir.className = 'mz-quiz__dir ' + (isPlus ? 'is-plus' : 'is-minus');
-    quizExpr.innerHTML = '<b>' + a + '</b><i>' + (isPlus ? '+' : '−') + '</i><b>' + b + '</b><i>=</i>';
-    quizTip.textContent = '当前得分 ' + score + ' · 答对才能走这一步';
+    quizExpr.innerHTML = '<b>' + score + '</b><i>' + (isPlus ? '+' : '−') + '</i><b>' + num + '</b><i>=</i>';
+    quizTip.textContent = '当前得分 ' + score + ' · 答对才能走这一步' +
+      (isPlus ? '' : '（答案可能是负数哦）');
     quizTip.className = 'mz-quiz__tip';
     quizInput.value = '';
+    if (quizNeg) quizNeg.classList.remove('is-on');
     quizAns.hidden = true;
     quizOk.disabled = false;
     quizOk.textContent = '提交';
@@ -383,57 +410,108 @@
     var v = (quizInput.value || '').trim();
     if (!/^-?\d+$/.test(v)) { quizWrong('先写上数字再提交哦～'); return; }
     if (Number(v) === pending.ans) {
-      // 答对：按这步的对错结算（走近 +N / 走远 −N），然后移动
+      // 答对，但这一步算出来是负数 → 错误路线，不让走
+      if (pending.ans < 0) {
+        blockStep();
+        return;
+      }
       pending.locked = true;
       quizOk.disabled = true;
-      settleStep(true);
+      settleStep(pending.isPlus ? 'plus' : 'minus');
     } else {
       quizWrong(pending.wrong >= 2 ? '答错啦，再想想～ 可以先算个位' : '答错啦，再想想～');
     }
   }
 
-  /* 结算并移动这一步。byAnswer = 自己答对的；false = 看了答案的（按走错扣分） */
-  function settleStep(byAnswer) {
+  /* =========================================================
+     负数 = 错误路线：算出来是负数，这一步就不让走。
+     —— 这是学负数的机会：孩子算出了 −7，也就知道「比 0 还少」，
+        同时明白「这条路会把分数扣成负数，走不通」，要换一条路。
+     分数永远保持 ≥ 0，不会出现负分。
+     ========================================================= */
+  function blockStep() {
     var p = pending;
     var old = score;
-    if (byAnswer && p.isPlus) {
-      score += p.num;
+    var next = p.ans;                 // 这一步算完会是负数
+    p.locked = true;
+    danger[idx(p.nr, p.nc)] = true;   // 把这个格子标成「曾算出负数」
+    renderCells();
+    renderFormula('neg', old, p.num, next);
+    quizTip.textContent = '❌ ' + old + ' − ' + p.num + ' = ' + next + ' 是负数，比 0 还少 → 这是错误路线，不能走！换一条路试试～';
+    quizTip.className = 'mz-quiz__tip is-bad';
+    quizExpr.innerHTML = '<b>' + old + '</b><i>−</i><b>' + p.num + '</b><i>=</i><b class="mz-quiz__ans-v">' + next + '</b>';
+    quizOk.textContent = '知道了，换条路 →';
+    quizOk.disabled = false;
+    quizOk.onclick = function () {
+      quizOk.textContent = '提交';
+      quizOk.onclick = null;
+      closeQuiz();
+      say('这条路走不通，换个方向试试～');
+    };
+    say('❌ 算出来是负数，这是错误路线，不能走！');
+  }
+
+  /* 结算并移动这一步。
+     mode = 'plus'  按加法结算（走近终点，数字加进来）
+     mode = 'minus' 按减法结算（走远了，数字扣掉）
+     两种情况都会先检查会不会变成负数 —— 变负数就拦住不让走。 */
+  function settleStep(mode) {
+    var p = pending;
+    var old = score;
+    var next = (mode === 'plus') ? (old + p.num) : (old - p.num);
+    if (next < 0) {
+      // 理论上不会走到这（submitQuiz / showAnswer 已经先拦了），留个保险
+      blockStep();
+      return;
+    }
+    score = next;
+    if (mode === 'plus') {
       plusN++;
       renderFormula('plus', old, p.num, score);
     } else {
-      score -= p.num;
       minusN++;
       renderFormula('minus', old, p.num, score);
     }
     player = { r: p.nr, c: p.nc };
     steps++;
     visited[idx(p.nr, p.nc)] = true;
+    if (danger) delete danger[idx(p.nr, p.nc)];   // 这条路现在走得通，红色警示撤掉
     renderCells();
     updateStat();
     var reached = (player.r === endPt.r && player.c === endPt.c);
-    var wasPlus = p.isPlus;
+    var wasPlus = (mode === 'plus');
     closeQuiz();          // 注意：closeQuiz 会把 pending 置空，之后别再访问 pending
     quizOk.textContent = '提交';
     quizOk.onclick = null;   // 清掉可能存在的覆盖，恢复 addEventListener 的提交
-    say(byAnswer && wasPlus ? '答对啦，数字到手！🌟'
-      : byAnswer ? '答对啦！不过走远了，这个数字被扣掉 😅'
-      : '看了答案，这一步算走错，扣 ' + p.num + ' 分');
+    say(wasPlus ? '答对啦，数字到手！🌟' : '答对啦！不过走远了，这个数字被扣掉 😅');
     if (reached) finish();
   }
 
-  /* 看答案：这步就按「走错」扣分，然后照样移动（不会算也不能赖掉，向前走） */
+  /* 看答案：把正确答案显示出来。
+     这一步按方向结算（走近加、走远减）—— 公式和实际加减永远一致，
+     孩子看到什么算式就加/减什么，不会出现「看着加法却被扣分」的困惑。
+     偷看本身有代价：要答错两次才出现这个按钮，而且错误路线照样拦住。 */
   function showAnswer() {
     if (!pending || pending.locked) return;
     pending.locked = true;
     quizOk.disabled = true;
-    quizExpr.innerHTML = quizExpr.textContent.replace(/\s/g, '') +
-      '<b class="mz-quiz__ans-v">' + pending.ans + '</b>';
-    quizTip.textContent = '正确答案是 ' + pending.ans + '。看了答案，这一步算走错，要扣 ' + pending.num + ' 分';
-    quizTip.className = 'mz-quiz__tip is-bad';
+    var p = pending;
+    var old = score;
+    var next = p.isPlus ? (old + p.num) : (old - p.num);
+    quizExpr.innerHTML = '<b>' + old + '</b><i>' + (p.isPlus ? '+' : '−') + '</i><b>' + p.num + '</b><i>=</i>' +
+      '<b class="mz-quiz__ans-v">' + next + '</b>';
+    if (next < 0) {
+      // 负数 → 错误路线，不让走
+      blockStep();
+      return;
+    }
+    quizTip.textContent = '正确答案是 ' + next + '。' +
+      (p.isPlus ? '这一步离终点更近，把 ' + p.num + ' 加进来～' : '这一步离终点更远，要减掉 ' + p.num + '。');
+    quizTip.className = 'mz-quiz__tip';
     quizAns.hidden = true;
     quizOk.textContent = '知道了，继续走 →';
     quizOk.disabled = false;
-    quizOk.onclick = function () { settleStep(false); };
+    quizOk.onclick = function () { settleStep(p.isPlus ? 'plus' : 'minus'); };
   }
 
   function bump() {
@@ -554,6 +632,7 @@
         if (r === startPt.r && c === startPt.c) cls += ' is-start';
         if (r === endPt.r && c === endPt.c) cls += ' is-end';
         if (visited[idx(r, c)]) cls += ' is-done';
+        if (danger && danger[idx(r, c)]) cls += ' is-danger';
         if (r === player.r && c === player.c) cls += ' is-now';
         el.className = cls;
       }
@@ -572,6 +651,10 @@
       html = '<p class="mz-f-main is-minus">' +
         '<b>' + oldV + '</b><i>−</i><b>' + num + '</b><i>=</i><b class="mz-f-new">' + newV + '</b></p>' +
         '<p class="mz-f-tip">🤔 答对啦，但离终点更远，这个数字被扣掉</p>';
+    } else if (kind === 'neg') {
+      html = '<p class="mz-f-main is-neg">' +
+        '<b>' + oldV + '</b><i>−</i><b>' + num + '</b><i>=</i><b class="mz-f-new">' + newV + '</b></p>' +
+        '<p class="mz-f-tip">❌ 算出来是负数（比 0 还少）→ 这是错误路线，不能走，换条路！</p>';
     } else if (kind === 'done') {
       var base = score > 0 ? score : 0;
       html = '<p class="mz-f-main is-done"><b>🏁 总分 ' + total + '</b>' +
@@ -664,6 +747,20 @@
   /* ---------- 答题弹层事件 ---------- */
   if (quizOk) quizOk.addEventListener('click', submitQuiz);
   if (quizAns) quizAns.addEventListener('click', showAnswer);
+  /* 手机数字键盘没有负号 → 给一个「±」按钮，一键在答案前加/减负号 */
+  if (quizNeg) {
+    quizNeg.addEventListener('click', function () {
+      var v = quizInput.value || '';
+      if (v.charAt(0) === '-') {
+        quizInput.value = v.slice(1);
+        quizNeg.classList.remove('is-on');
+      } else {
+        quizInput.value = '-' + v;
+        quizNeg.classList.add('is-on');
+      }
+      quizInput.focus();
+    });
+  }
   if (quizX) quizX.addEventListener('click', function () {
     // 放弃这一步：关掉弹层留在原地，不扣分（可以换条路走）
     if (pending && !pending.locked) closeQuiz();
